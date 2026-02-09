@@ -1,36 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/navigation_bar.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  runApp(const MVWebsite());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MVWebsite extends StatelessWidget {
+  const MVWebsite({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'MV Machine Shop',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
+        fontFamily: 'Roboto',
       ),
-      home: const Placeholder(),
+      home: const HomePage(),
+      // routes: {
+      //   '/': (context) => const HomePage(),
+      //   '/services': (context) => const ServicesPage(),
+      //   '/capabilities': (context) => const CapabilitiesPage(),
+      //   '/about': (context) => const AboutPage(),
+      //   '/gallery': (context) => const GalleryPage(),
+      // },
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // Navigation Bar
+          const CustomNavigationBar(currentRoute: '/'),
+          
+          // Page Content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Hero Section
+                  _buildHeroSection(),
+                  
+                  // Add more sections here as you build them
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection() {
+    return Container(
+      height: 600,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF0d47a1),
+            const Color(0xFF1976d2),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Precision CNC Manufacturing',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Your trusted partner for high-quality machining solutions',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 20,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF0d47a1),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 20,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: const Text('View Our Capabilities'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
