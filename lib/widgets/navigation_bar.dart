@@ -1,3 +1,5 @@
+import 'dart:ui' as html;
+
 import 'package:flutter/material.dart';
 
 class CustomNavigationBar extends StatefulWidget {
@@ -20,6 +22,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     final isDesktop = MediaQuery.of(context).size.width >= 768;
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF1a1a1a), // Dark professional color
         boxShadow: [
@@ -36,30 +39,40 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
 
   Widget _buildDesktopNav() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       constraints: const BoxConstraints(maxWidth: 1400),
       margin: const EdgeInsets.symmetric(horizontal: 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Logo/Brand
-          _buildLogo(),
+          // Logo/Brand - wrapped in Flexible to prevent overflow
+          Flexible(
+            flex: 0,
+            child: _buildLogo(),
+          ),
 
-          // Navigation Links
-          Row(
-            children: [
-              _buildNavLink('Home', '/'),
-              const SizedBox(width: 32),
-              _buildNavLink('Services', '/services'),
-              const SizedBox(width: 32),
-              _buildNavLink('Capabilities', '/capabilities'),
-              const SizedBox(width: 32),
-              _buildNavLink('About Us', '/about'),
-              const SizedBox(width: 32),
-              _buildNavLink('Gallery', '/gallery'),
-              const SizedBox(width: 40),
-              _buildContactButton(),
-            ],
+          // Add some spacing
+          const SizedBox(width: 16),
+
+          // Navigation Links - wrapped in Flexible and Expanded to handle overflow
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: _buildNavLink('Home', '/')),
+                const SizedBox(width: 16),
+                Flexible(child: _buildNavLink('Services', '/services')),
+                const SizedBox(width: 16),
+                Flexible(child: _buildNavLink('Capabilities', '/capabilities')),
+                const SizedBox(width: 16),
+                Flexible(child: _buildNavLink('About Us', '/about')),
+                const SizedBox(width: 16),
+                Flexible(child: _buildNavLink('Gallery', '/gallery')),
+                const SizedBox(width: 20),
+                _buildContactButton(),
+              ],
+            ),
           ),
         ],
       ),
@@ -118,8 +131,9 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     return InkWell(
       onTap: () => _navigateTo('/'),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // You can replace this with an actual logo image
+          // replace this with an actual logo image
           Container(
             width: 40,
             height: 40,
@@ -174,7 +188,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
         // You can add hover state if needed
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 4),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -256,13 +270,12 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
   }
 
   void _navigateTo(String route) {
-    // For now, just print. You'll implement actual navigation later
-    print('Navigate to: $route');
-    
-    // When you set up routing, you'll use:
-    // Navigator.pushNamed(context, route);
-    // or for web:
-    // html.window.history.pushState(null, '', route);
+    // Prevent navigating to the same page we are already on
+    if (widget.currentRoute == route) return;
+
+    // Use pushReplacementNamed so the user can't hit "back" 
+    // and see the exact same navbar state on a duplicate page.
+    Navigator.pushNamed(context, route);
   }
 
   void _showContactDialog() {
