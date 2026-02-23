@@ -1,6 +1,5 @@
+Fix request a Quote 
 Replace the MV placeholder in _buildLogo()
-Change "MV Machine Shop" text
-Edit the _showContactDialog() method
 Home screen
 Footer with contact info
 Other pages in priority order

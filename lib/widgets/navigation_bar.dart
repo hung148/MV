@@ -1,6 +1,8 @@
 import 'dart:ui' as html;
 
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/contacts.dart';
+import 'package:mv/widgets/styles.dart';
 
 class CustomNavigationBar extends StatefulWidget {
   final String currentRoute;
@@ -60,16 +62,12 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
               mainAxisAlignment: MainAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Flexible(child: _buildNavLink('Home', '/')),
-                const SizedBox(width: 16),
-                Flexible(child: _buildNavLink('Services', '/services')),
-                const SizedBox(width: 16),
-                Flexible(child: _buildNavLink('Capabilities', '/capabilities')),
-                const SizedBox(width: 16),
-                Flexible(child: _buildNavLink('About Us', '/about')),
-                const SizedBox(width: 16),
-                Flexible(child: _buildNavLink('Gallery', '/gallery')),
-                const SizedBox(width: 20),
+                _NavBarLink(title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                _NavBarLink(title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                _NavBarLink(title: 'Capabilities', route: '/capabilities', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                _NavBarLink(title: 'About Us', route: '/about', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                _NavBarLink(title: 'Gallery', route: '/gallery', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                const SizedBox(width: 24),
                 _buildContactButton(),
               ],
             ),
@@ -111,14 +109,15 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
             color: const Color(0xFF2a2a2a),
             child: Column(
               children: [
-                _buildMobileNavLink('Home', '/'),
-                _buildMobileNavLink('Services', '/services'),
-                _buildMobileNavLink('Capabilities', '/capabilities'),
-                _buildMobileNavLink('About Us', '/about'),
-                _buildMobileNavLink('Gallery', '/gallery'),
+                 _MobileNavBarLink(title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                _MobileNavBarLink(title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                _MobileNavBarLink(title: 'Capabilities', route: '/capabilities', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                _MobileNavBarLink(title: 'About Us', route: '/about', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                _MobileNavBarLink(title: 'Gallery', route: '/gallery', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                
                 Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _buildContactButton(),
+                  padding: const EdgeInsets.all(20),
+                  child: SizedBox(width: double.infinity, child: _buildContactButton()),
                 ),
               ],
             ),
@@ -127,13 +126,17 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     );
   }
 
+  void _handleMobileTap(String route) {
+    _navigateTo(route);
+    setState(() => _isMobileMenuOpen = false);
+  }
+
   Widget _buildLogo() {
     return InkWell(
       onTap: () => _navigateTo('/'),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // replace this with an actual logo image
           Container(
             width: 40,
             height: 40,
@@ -158,7 +161,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'MV Machine Shop',
+                CompanyContact.name,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -166,7 +169,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
                 ),
               ),
               Text(
-                'CNC & Precision Manufacturing',
+                CompanyContact.tagline,
                 style: TextStyle(
                   color: Color(0xFF999999),
                   fontSize: 11,
@@ -197,13 +200,10 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
             ),
           ),
         ),
-        child: Text(
+         child: Text(
           title,
-          style: TextStyle(
-            color: isActive ? Colors.white : const Color(0xFFcccccc),
-            fontSize: 15,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            letterSpacing: 0.3,
+          style: ShopStyles.navLink.copyWith(
+            color: isActive ? ShopStyles.textMain : ShopStyles.textSecondary,
           ),
         ),
       ),
@@ -224,20 +224,18 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF333333) : Colors.transparent,
+          color: isActive ? Colors.white.withValues(alpha: 0.05) : Colors.transparent,
           border: Border(
             left: BorderSide(
-              color: isActive ? const Color(0xFF0066cc) : Colors.transparent,
+              color: isActive ? ShopStyles.primaryBlue : Colors.transparent,
               width: 4,
             ),
           ),
         ),
         child: Text(
           title,
-          style: TextStyle(
-            color: isActive ? Colors.white : const Color(0xFFcccccc),
-            fontSize: 16,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+          style: ShopStyles.navLink.copyWith(
+            color: isActive ? Colors.white : ShopStyles.textSecondary,
           ),
         ),
       ),
@@ -245,25 +243,45 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
   }
 
   Widget _buildContactButton() {
-    return ElevatedButton(
-      onPressed: () {
-        // Scroll to contact section or open contact dialog
-        _showContactDialog();
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0066cc),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
-        elevation: 0,
-      ),
-      child: const Text(
-        'Get a Quote',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        child: ElevatedButton(
+          onPressed: _showQuoteForm,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0066cc),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            elevation: 4,
+            shadowColor: Colors.black.withValues(alpha: 0.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ).copyWith(
+            // Adds a slight color change on hover automatically
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (states) {
+                if (states.contains(WidgetState.hovered)) return Colors.blue.shade700;
+                return null;
+              },
+            ),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'GET A QUOTE',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.arrow_forward_rounded, size: 18),
+            ],
+          ),
         ),
       ),
     );
@@ -278,28 +296,181 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     Navigator.pushNamed(context, route);
   }
 
-  void _showContactDialog() {
+  void _showQuoteForm() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Contact Us'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Phone: (555) 123-4567'),
-            SizedBox(height: 8),
-            Text('Email: info@mvmachineshop.com'),
-            SizedBox(height: 8),
-            Text('Hours: Mon-Fri 8AM-5PM'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(32),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Text('Request a Quote', style: ShopStyles.heading),
+                const SizedBox(height: 8),
+                Text(
+                  'Submit your requirements or contact us directly at ${CompanyContact.phone}',
+                  style: ShopStyles.body,
+                ),
+                
+                const Divider(height: 40),
+
+                // Form Fields
+                _buildTextField('Full Name', Icons.person_outline),
+                const SizedBox(height: 16),
+                _buildTextField('Email Address', Icons.email_outlined),
+                const SizedBox(height: 16),
+                _buildTextField('Project Details', Icons.description_outlined, maxLines: 3),
+                
+                const SizedBox(height: 24),
+                
+                // Action Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ShopStyles.primaryButton,
+                    child: const Text('Send Inquiry'),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Detailed Shop Info at bottom of dialog
+                const Text(
+                  'Shop Location & Hours:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                Text(CompanyContact.fullAddress, style: ShopStyles.body),
+                Text('Mon-Fri: ${CompanyContact.operatingHours["Monday - Friday"]}', style: ShopStyles.body),
+              ],
+            ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, IconData icon, {int maxLines = 1}) {
+    return TextFormField(
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF0066cc), width: 2),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavBarLink extends StatefulWidget {
+  final String title;
+  final String route;
+  final String currentRoute;
+  final Function(String) onTap;
+
+  const _NavBarLink({required this.title, required this.route, required this.currentRoute, required this.onTap});
+
+  @override
+  State<_NavBarLink> createState() => _NavBarLinkState();
+}
+
+class _NavBarLinkState extends State<_NavBarLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = widget.currentRoute == widget.route;
+
+    return InkWell(
+      onTap: () => widget.onTap(widget.route),
+      onHover: (hovering) => setState(() => _isHovered = hovering),
+      overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove default splash
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isActive ? ShopStyles.primaryBlue : (_isHovered ? Colors.white24 : Colors.transparent),
+              width: 3,
+            ),
+          ),
+        ),
+        child: Text(
+          widget.title,
+          style: ShopStyles.navLink.copyWith(
+            // Logic: If active or hovered, text is white. Otherwise, it's grey.
+            color: (isActive || _isHovered) ? Colors.white : ShopStyles.textSecondary,
+            // Add a subtle shadow glow when hovered
+            shadows: _isHovered && !isActive
+                ? [Shadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: 8)]
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileNavBarLink extends StatefulWidget {
+  final String title;
+  final String route;
+  final String currentRoute;
+  final Function(String) onTap;
+
+  const _MobileNavBarLink({required this.title, required this.route, required this.currentRoute, required this.onTap});
+
+  @override
+  State<_MobileNavBarLink> createState() => _MobileNavBarLinkState();
+}
+
+class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = widget.currentRoute == widget.route;
+
+    return InkWell(
+      onTap: () => widget.onTap(widget.route),
+      onHover: (value) => setState(() => _isHovered = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: BoxDecoration(
+          // HIGHLIGHT LOGIC:
+          // 1. If active: Solid light highlight
+          // 2. If hovering: Faint highlight
+          // 3. Otherwise: Transparent
+          color: isActive 
+              ? Colors.white.withValues(alpha: 0.12) 
+              : (_isHovered ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
+          border: Border(
+            left: BorderSide(
+              color: isActive ? ShopStyles.primaryBlue : Colors.transparent,
+              width: 4,
+            ),
+          ),
+        ),
+        child: Text(
+          widget.title,
+          style: ShopStyles.navLink.copyWith(
+            color: (isActive || _isHovered) ? Colors.white : ShopStyles.textSecondary,
+            fontSize: 18,
+          ),
+        ),
       ),
     );
   }
