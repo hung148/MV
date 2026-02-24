@@ -1,8 +1,136 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/navigation_bar.dart';
+import 'package:mv/widgets/styles.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  void _showQuoteForm(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(32),
+          child: SingleChildScrollView(
+            child: Form( // 1. Bọc toàn bộ vào Form
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Request a Quote', style: ShopStyles.heading),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Submit your requirements or contact us directly at ${CompanyContact.phone}',
+                    style: ShopStyles.body,
+                  ),
+                  const Divider(height: 40),
+
+                  // Trường Họ Tên - Max 50 ký tự
+                  _buildTextField(
+                    'Full Name', 
+                    Icons.person_outline,
+                    maxLength: 50,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Please enter your name';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Trường Email - Max 100 ký tự + Kiểm tra định dạng email
+                  _buildTextField(
+                    'Email Address', 
+                    Icons.email_outlined,
+                    maxLength: 100,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Please enter your email';
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                        return 'Please enter a valid email address';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Trường Nội dung - Max 1000 ký tự
+                  _buildTextField(
+                    'Project Details', 
+                    Icons.description_outlined, 
+                    maxLines: 4,
+                    maxLength: 1000,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Please describe your project';
+                      if (value.length < 10) return 'Please provide more details (min 10 chars)';
+                      return null;
+                    },
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // 2. Kiểm tra tính hợp lệ trước khi gửi
+                        if (formKey.currentState!.validate()) {
+                          // Nếu OK -> Đóng và thông báo
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Inquiry sent successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      },
+                      style: ShopStyles.primaryButton,
+                      child: const Text('Send Inquiry'),
+                    ),
+                  ),
+                  // ... (Phần thông tin liên hệ bên dưới giữ nguyên)
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    String label, 
+    IconData icon, {
+    int maxLines = 1, 
+    String? Function(String?)? validator, // Thêm validator
+    int? maxLength,                        // Thêm maxLength
+  }) {
+    return TextFormField(
+      maxLines: maxLines,
+      maxLength: maxLength, // Gán giới hạn độ dài
+      validator: validator, // Gán logic kiểm tra
+      decoration: InputDecoration(
+        counterText: "", // Ẩn bộ đếm 0/50 bên dưới cho đẹp
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF0066cc), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +153,7 @@ class HomePage extends StatelessWidget {
                   _buildCapabilitiesSection(),
                   _buildWhyChooseUsSection(),
                   _buildStatsSection(),
-                  _buildCTASection(),
+                  _buildCTASection(context),
                   _buildFooter(),
                 ],
               ),
@@ -133,9 +261,7 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/capabilities');
-                        },
+                        onPressed: () => _showQuoteForm(context),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white, width: 2),
@@ -673,7 +799,7 @@ class HomePage extends StatelessWidget {
   }
 
   // CTA Section
-  Widget _buildCTASection() {
+  Widget _buildCTASection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
       color: Colors.white,
@@ -702,7 +828,7 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () => _showQuoteForm(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0d47a1),
                   foregroundColor: Colors.white,
@@ -770,9 +896,9 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 40),
               const Divider(color: Color(0xFF333333)),
               const SizedBox(height: 20),
-              const Text(
-                '© 2024 MV Machine Shop. All rights reserved.',
-                style: TextStyle(
+              Text(
+                '© ${DateTime.now().year} ${CompanyContact.name}. All rights reserved.',
+                style: const TextStyle(
                   color: Color(0xFF999999),
                   fontSize: 14,
                 ),
@@ -790,11 +916,20 @@ class HomePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'MV Machine Shop',
+          CompanyContact.name, // Lấy từ class CompanyContact
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          CompanyContact.tagline, // Thêm tagline từ class
+          style: TextStyle(
+            color: Color(0xFF0066cc),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 16),
@@ -831,7 +966,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFooterSection3() {
+   Widget _buildFooterSection3() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -844,9 +979,13 @@ class HomePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _buildFooterInfo(Icons.phone, '(555) 123-4567'),
-        _buildFooterInfo(Icons.email, 'info@mvmachineshop.com'),
-        _buildFooterInfo(Icons.schedule, 'Mon-Fri: 8AM - 5PM'),
+        _buildFooterInfo(Icons.location_on_outlined, CompanyContact.fullAddress), // Thêm địa chỉ
+        _buildFooterInfo(Icons.phone_outlined, CompanyContact.phone),
+        _buildFooterInfo(Icons.email_outlined, CompanyContact.email),
+        _buildFooterInfo(
+          Icons.schedule_outlined, 
+          'Mon-Fri: ${CompanyContact.operatingHours["Monday - Friday"]}',
+        ),
       ],
     );
   }

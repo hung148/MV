@@ -1,9 +1,137 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/navigation_bar.dart';
+import 'package:mv/widgets/styles.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
+  void _showQuoteForm(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(32),
+          child: SingleChildScrollView(
+            child: Form( // 1. Bọc toàn bộ vào Form
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Request a Quote', style: ShopStyles.heading),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Submit your requirements or contact us directly at ${CompanyContact.phone}',
+                    style: ShopStyles.body,
+                  ),
+                  const Divider(height: 40),
+
+                  // Trường Họ Tên - Max 50 ký tự
+                  _buildTextField(
+                    'Full Name', 
+                    Icons.person_outline,
+                    maxLength: 50,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Please enter your name';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Trường Email - Max 100 ký tự + Kiểm tra định dạng email
+                  _buildTextField(
+                    'Email Address', 
+                    Icons.email_outlined,
+                    maxLength: 100,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Please enter your email';
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                        return 'Please enter a valid email address';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Trường Nội dung - Max 1000 ký tự
+                  _buildTextField(
+                    'Project Details', 
+                    Icons.description_outlined, 
+                    maxLines: 4,
+                    maxLength: 1000,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Please describe your project';
+                      if (value.length < 10) return 'Please provide more details (min 10 chars)';
+                      return null;
+                    },
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // 2. Kiểm tra tính hợp lệ trước khi gửi
+                        if (formKey.currentState!.validate()) {
+                          // Nếu OK -> Đóng và thông báo
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Inquiry sent successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      },
+                      style: ShopStyles.primaryButton,
+                      child: const Text('Send Inquiry'),
+                    ),
+                  ),
+                  // ... (Phần thông tin liên hệ bên dưới giữ nguyên)
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    String label, 
+    IconData icon, {
+    int maxLines = 1, 
+    String? Function(String?)? validator, // Thêm validator
+    int? maxLength,                        // Thêm maxLength
+  }) {
+    return TextFormField(
+      maxLines: maxLines,
+      maxLength: maxLength, // Gán giới hạn độ dài
+      validator: validator, // Gán logic kiểm tra
+      decoration: InputDecoration(
+        counterText: "", // Ẩn bộ đếm 0/50 bên dưới cho đẹp
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF0066cc), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
+      ),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +150,7 @@ class AboutPage extends StatelessWidget {
                   _buildValuesSection(),
                   _buildTeamSection(),
                   _buildTimelineSection(),
-                  _buildCTASection(),
+                  _buildCTASection(context),
                   _buildFooter(),
                 ],
               ),
@@ -490,7 +618,7 @@ class AboutPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCTASection() {
+  Widget _buildCTASection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
       color: const Color(0xFF0d47a1),
@@ -519,7 +647,7 @@ class AboutPage extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () => _showQuoteForm(context), 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFF0d47a1),
@@ -544,10 +672,32 @@ class AboutPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       color: const Color(0xFF1a1a1a),
-      child: const Center(
-        child: Text(
-          '© 2024 MV Machine Shop. All rights reserved.',
-          style: TextStyle(color: Color(0xFF999999), fontSize: 14),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            children: [
+              const Divider(color: Color(0xFF333333)),
+              const SizedBox(height: 20),
+              Text(
+                '© ${DateTime.now().year} ${CompanyContact.name}. All rights reserved.',
+                style: const TextStyle(
+                  color: Color(0xFF999999),
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${CompanyContact.fullAddress} | ${CompanyContact.phone}',
+                style: const TextStyle(
+                  color: Color(0xFF666666),
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
