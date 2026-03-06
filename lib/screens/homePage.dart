@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/contacts.dart';
-import 'package:mv/widgets/navigation_bar.dart';
 import 'package:mv/widgets/styles.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+// Renamed from HomePage to HomePageContent.
+// No Scaffold or CustomNavigationBar — AppShell in main.dart handles both.
+class HomePageContent extends StatelessWidget {
+  const HomePageContent({super.key});
 
   void _showQuoteForm(BuildContext context) {
     final formKey = GlobalKey<FormState>();
@@ -18,7 +19,7 @@ class HomePage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 500),
           padding: const EdgeInsets.all(32),
           child: SingleChildScrollView(
-            child: Form( // 1. Bọc toàn bộ vào Form
+            child: Form(
               key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -31,10 +32,8 @@ class HomePage extends StatelessWidget {
                     style: ShopStyles.body,
                   ),
                   const Divider(height: 40),
-
-                  // Trường Họ Tên - Max 50 ký tự
                   _buildTextField(
-                    'Full Name', 
+                    'Full Name',
                     Icons.person_outline,
                     maxLength: 50,
                     validator: (value) {
@@ -43,10 +42,8 @@ class HomePage extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Trường Email - Max 100 ký tự + Kiểm tra định dạng email
                   _buildTextField(
-                    'Email Address', 
+                    'Email Address',
                     Icons.email_outlined,
                     maxLength: 100,
                     validator: (value) {
@@ -58,11 +55,9 @@ class HomePage extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Trường Nội dung - Max 1000 ký tự
                   _buildTextField(
-                    'Project Details', 
-                    Icons.description_outlined, 
+                    'Project Details',
+                    Icons.description_outlined,
                     maxLines: 4,
                     maxLength: 1000,
                     validator: (value) {
@@ -71,16 +66,12 @@ class HomePage extends StatelessWidget {
                       return null;
                     },
                   ),
-                  
                   const SizedBox(height: 24),
-                  
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // 2. Kiểm tra tính hợp lệ trước khi gửi
                         if (formKey.currentState!.validate()) {
-                          // Nếu OK -> Đóng và thông báo
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -94,7 +85,6 @@ class HomePage extends StatelessWidget {
                       child: const Text('Send Inquiry'),
                     ),
                   ),
-                  // ... (Phần thông tin liên hệ bên dưới giữ nguyên)
                 ],
               ),
             ),
@@ -105,18 +95,18 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildTextField(
-    String label, 
+    String label,
     IconData icon, {
-    int maxLines = 1, 
-    String? Function(String?)? validator, // Thêm validator
-    int? maxLength,                        // Thêm maxLength
+    int maxLines = 1,
+    String? Function(String?)? validator,
+    int? maxLength,
   }) {
     return TextFormField(
       maxLines: maxLines,
-      maxLength: maxLength, // Gán giới hạn độ dài
-      validator: validator, // Gán logic kiểm tra
+      maxLength: maxLength,
+      validator: validator,
       decoration: InputDecoration(
-        counterText: "", // Ẩn bộ đếm 0/50 bên dưới cho đẹp
+        counterText: "",
         labelText: label,
         prefixIcon: Icon(icon, size: 20),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -134,54 +124,39 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch, 
+    // Just the scrollable content — no Scaffold, no navbar
+    return SingleChildScrollView(
+      child: Column(
         children: [
-          // Navigation Bar
-          const CustomNavigationBar(currentRoute: '/'),
-          
-          // Page Content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeroSection(context),
-                  _buildFeaturesSection(),
-                  _buildServicesSection(),
-                  _buildCapabilitiesSection(),
-                  _buildWhyChooseUsSection(),
-                  _buildStatsSection(),
-                  _buildCTASection(context),
-                  _buildFooter(),
-                ],
-              ),
-            ),
-          ),
+          _buildHeroSection(context),
+          _buildFeaturesSection(),
+          _buildServicesSection(),
+          _buildCapabilitiesSection(),
+          _buildWhyChooseUsSection(),
+          _buildStatsSection(),
+          _buildCTASection(context),
+          _buildFooter(context),
         ],
       ),
     );
   }
 
-  // Hero Section
   Widget _buildHeroSection(BuildContext context) {
     return Container(
       height: 700,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFF0d47a1),
-            const Color(0xFF1976d2),
-            const Color(0xFF42a5f5),
+            Color(0xFF0d47a1),
+            Color(0xFF1976d2),
+            Color(0xFF42a5f5),
           ],
         ),
       ),
       child: Stack(
         children: [
-          // Optional: Add a pattern or image overlay
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -194,8 +169,6 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Content
           Center(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -216,20 +189,13 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 24),
                   const Text(
                     'Your trusted partner for high-quality machining solutions',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w300,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w300),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'From prototype to production, we deliver excellence in every part',
-                    style: TextStyle(
-                      color: Color(0xFFE3F2FD),
-                      fontSize: 18,
-                    ),
+                    style: TextStyle(color: Color(0xFFE3F2FD), fontSize: 18),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -243,21 +209,13 @@ class HomePage extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: const Color(0xFF0d47a1),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 20,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                           elevation: 4,
                         ),
                         child: const Text(
                           'View Our Capabilities',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       OutlinedButton(
@@ -265,20 +223,12 @@ class HomePage extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white, width: 2),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 20,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                         ),
                         child: const Text(
                           'Get a Quote',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -292,7 +242,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Features Section
   Widget _buildFeaturesSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
@@ -304,20 +253,13 @@ class HomePage extends StatelessWidget {
             children: [
               const Text(
                 'Why MV Machine Shop?',
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1a1a1a),
-                ),
+                style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Color(0xFF1a1a1a)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               const Text(
                 'Industry-leading precision and reliability',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Color(0xFF666666),
-                ),
+                style: TextStyle(fontSize: 18, color: Color(0xFF666666)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 60),
@@ -358,12 +300,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String title,
-    required String description,
-    double? width,
-  }) {
+  Widget _buildFeatureCard({required IconData icon, required String title, required String description, double? width}) {
     return Container(
       width: width,
       padding: const EdgeInsets.all(32),
@@ -371,13 +308,7 @@ class HomePage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFe0e0e0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         children: [
@@ -387,38 +318,17 @@ class HomePage extends StatelessWidget {
               color: const Color(0xFF0d47a1).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(50),
             ),
-            child: Icon(
-              icon,
-              size: 48,
-              color: const Color(0xFF0d47a1),
-            ),
+            child: Icon(icon, size: 48, color: const Color(0xFF0d47a1)),
           ),
           const SizedBox(height: 24),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1a1a1a),
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1a1a1a)), textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF666666),
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text(description, style: const TextStyle(fontSize: 16, color: Color(0xFF666666), height: 1.5), textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
-  // Services Section
   Widget _buildServicesSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
@@ -428,24 +338,9 @@ class HomePage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
             children: [
-              const Text(
-                'Our Services',
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1a1a1a),
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const Text('Our Services', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Color(0xFF1a1a1a)), textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              const Text(
-                'Comprehensive machining solutions for every need',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Color(0xFF666666),
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const Text('Comprehensive machining solutions for every need', style: TextStyle(fontSize: 18, color: Color(0xFF666666)), textAlign: TextAlign.center),
               const SizedBox(height: 60),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -455,30 +350,10 @@ class HomePage extends StatelessWidget {
                     runSpacing: 24,
                     alignment: WrapAlignment.center,
                     children: [
-                      _buildServiceCard(
-                        title: 'CNC Milling',
-                        description: '3-axis and 5-axis milling for complex geometries',
-                        imageIcon: Icons.settings,
-                        width: isWide ? 280 : double.infinity,
-                      ),
-                      _buildServiceCard(
-                        title: 'CNC Turning',
-                        description: 'High-precision turning for cylindrical components',
-                        imageIcon: Icons.rotate_right,
-                        width: isWide ? 280 : double.infinity,
-                      ),
-                      _buildServiceCard(
-                        title: 'Prototyping',
-                        description: 'Rapid prototyping from concept to finished part',
-                        imageIcon: Icons.science,
-                        width: isWide ? 280 : double.infinity,
-                      ),
-                      _buildServiceCard(
-                        title: 'Production Runs',
-                        description: 'Low to high volume manufacturing capabilities',
-                        imageIcon: Icons.factory,
-                        width: isWide ? 280 : double.infinity,
-                      ),
+                      _buildServiceCard(title: 'CNC Milling', description: '3-axis and 5-axis milling for complex geometries', imageIcon: Icons.settings, width: isWide ? 280 : double.infinity),
+                      _buildServiceCard(title: 'CNC Turning', description: 'High-precision turning for cylindrical components', imageIcon: Icons.rotate_right, width: isWide ? 280 : double.infinity),
+                      _buildServiceCard(title: 'Prototyping', description: 'Rapid prototyping from concept to finished part', imageIcon: Icons.science, width: isWide ? 280 : double.infinity),
+                      _buildServiceCard(title: 'Production Runs', description: 'Low to high volume manufacturing capabilities', imageIcon: Icons.factory, width: isWide ? 280 : double.infinity),
                     ],
                   );
                 },
@@ -490,12 +365,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard({
-    required String title,
-    required String description,
-    required IconData imageIcon,
-    double? width,
-  }) {
+  Widget _buildServiceCard({required String title, required String description, required IconData imageIcon, double? width}) {
     return Container(
       width: width,
       height: 220,
@@ -503,48 +373,21 @@ class HomePage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            imageIcon,
-            size: 56,
-            color: const Color(0xFF0d47a1),
-          ),
+          Icon(imageIcon, size: 56, color: const Color(0xFF0d47a1)),
           const SizedBox(height: 20),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1a1a1a),
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1a1a1a)), textAlign: TextAlign.center),
           const SizedBox(height: 8),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF666666),
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text(description, style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.4), textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
-  // Capabilities Section
   Widget _buildCapabilitiesSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
@@ -554,15 +397,7 @@ class HomePage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
             children: [
-              const Text(
-                'Materials We Work With',
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1a1a1a),
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const Text('Materials We Work With', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Color(0xFF1a1a1a)), textAlign: TextAlign.center),
               const SizedBox(height: 60),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -600,20 +435,10 @@ class HomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFe0e0e0)),
       ),
-      child: Center(
-        child: Text(
-          material,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1a1a1a),
-          ),
-        ),
-      ),
+      child: Center(child: Text(material, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1a1a1a)))),
     );
   }
 
-  // Why Choose Us Section
   Widget _buildWhyChooseUsSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
@@ -623,15 +448,7 @@ class HomePage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
             children: [
-              const Text(
-                'Experience & Expertise',
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const Text('Experience & Expertise', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
               const SizedBox(height: 60),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -640,51 +457,21 @@ class HomePage extends StatelessWidget {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: _buildExperiencePoint(
-                            icon: Icons.calendar_today,
-                            title: '25+ Years',
-                            description: 'Of industry experience and continuous improvement',
-                          ),
-                        ),
+                        Expanded(child: _buildExperiencePoint(icon: Icons.calendar_today, title: '25+ Years', description: 'Of industry experience and continuous improvement')),
                         const SizedBox(width: 48),
-                        Expanded(
-                          child: _buildExperiencePoint(
-                            icon: Icons.people,
-                            title: 'Expert Team',
-                            description: 'Certified machinists and quality control specialists',
-                          ),
-                        ),
+                        Expanded(child: _buildExperiencePoint(icon: Icons.people, title: 'Expert Team', description: 'Certified machinists and quality control specialists')),
                         const SizedBox(width: 48),
-                        Expanded(
-                          child: _buildExperiencePoint(
-                            icon: Icons.build,
-                            title: 'Advanced Equipment',
-                            description: 'Latest CNC machines and measurement tools',
-                          ),
-                        ),
+                        Expanded(child: _buildExperiencePoint(icon: Icons.build, title: 'Advanced Equipment', description: 'Latest CNC machines and measurement tools')),
                       ],
                     );
                   } else {
                     return Column(
                       children: [
-                        _buildExperiencePoint(
-                          icon: Icons.calendar_today,
-                          title: '25+ Years',
-                          description: 'Of industry experience and continuous improvement',
-                        ),
+                        _buildExperiencePoint(icon: Icons.calendar_today, title: '25+ Years', description: 'Of industry experience and continuous improvement'),
                         const SizedBox(height: 40),
-                        _buildExperiencePoint(
-                          icon: Icons.people,
-                          title: 'Expert Team',
-                          description: 'Certified machinists and quality control specialists',
-                        ),
+                        _buildExperiencePoint(icon: Icons.people, title: 'Expert Team', description: 'Certified machinists and quality control specialists'),
                         const SizedBox(height: 40),
-                        _buildExperiencePoint(
-                          icon: Icons.build,
-                          title: 'Advanced Equipment',
-                          description: 'Latest CNC machines and measurement tools',
-                        ),
+                        _buildExperiencePoint(icon: Icons.build, title: 'Advanced Equipment', description: 'Latest CNC machines and measurement tools'),
                       ],
                     );
                   }
@@ -697,43 +484,18 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildExperiencePoint({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
+  Widget _buildExperiencePoint({required IconData icon, required String title, required String description}) {
     return Column(
       children: [
-        Icon(
-          icon,
-          size: 48,
-          color: Colors.white,
-        ),
+        Icon(icon, size: 48, color: Colors.white),
         const SizedBox(height: 16),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        Text(
-          description,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFFE3F2FD),
-            height: 1.5,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        Text(description, style: const TextStyle(fontSize: 16, color: Color(0xFFE3F2FD), height: 1.5), textAlign: TextAlign.center),
       ],
     );
   }
 
-  // Stats Section
   Widget _buildStatsSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
@@ -777,28 +539,13 @@ class HomePage extends StatelessWidget {
   Widget _buildStatItem(String number, String label) {
     return Column(
       children: [
-        Text(
-          number,
-          style: const TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0066cc),
-          ),
-        ),
+        Text(number, style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Color(0xFF0066cc))),
         const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFFcccccc),
-          ),
-          textAlign: TextAlign.center,
-        ),
+        Text(label, style: const TextStyle(fontSize: 16, color: Color(0xFFcccccc)), textAlign: TextAlign.center),
       ],
     );
   }
 
-  // CTA Section
   Widget _buildCTASection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
@@ -808,46 +555,20 @@ class HomePage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 800),
           child: Column(
             children: [
-              const Text(
-                'Ready to Get Started?',
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1a1a1a),
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const Text('Ready to Get Started?', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Color(0xFF1a1a1a)), textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              const Text(
-                'Contact us today for a free quote on your next project',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Color(0xFF666666),
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const Text('Contact us today for a free quote on your next project', style: TextStyle(fontSize: 18, color: Color(0xFF666666)), textAlign: TextAlign.center),
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () => _showQuoteForm(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0d47a1),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 24,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   elevation: 2,
                 ),
-                child: const Text(
-                  'Request a Quote',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: const Text('Request a Quote', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -856,8 +577,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Footer
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       color: const Color(0xFF1a1a1a),
@@ -898,10 +618,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 '© ${DateTime.now().year} ${CompanyContact.name}. All rights reserved.',
-                style: const TextStyle(
-                  color: Color(0xFF999999),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF999999), fontSize: 14),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -915,32 +632,11 @@ class HomePage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          CompanyContact.name, // Lấy từ class CompanyContact
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        const Text(CompanyContact.name, style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        const Text(
-          CompanyContact.tagline, // Thêm tagline từ class
-          style: TextStyle(
-            color: Color(0xFF0066cc),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        const Text(CompanyContact.tagline, style: TextStyle(color: Color(0xFF0066cc), fontSize: 14, fontWeight: FontWeight.w500)),
         const SizedBox(height: 16),
-        Text(
-          'Precision CNC machining and manufacturing solutions for industries worldwide.',
-          style: TextStyle(
-            color: const Color(0xFF999999),
-            fontSize: 14,
-            height: 1.5,
-          ),
-        ),
+        const Text('Precision CNC machining and manufacturing solutions for industries worldwide.', style: TextStyle(color: Color(0xFF999999), fontSize: 14, height: 1.5)),
       ],
     );
   }
@@ -949,14 +645,7 @@ class HomePage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Quick Links',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        const Text('Quick Links', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         _buildFooterLink(context, 'Services', '/services'),
         _buildFooterLink(context, 'Capabilities', '/capabilities'),
@@ -966,26 +655,16 @@ class HomePage extends StatelessWidget {
     );
   }
 
-   Widget _buildFooterSection3() {
+  Widget _buildFooterSection3() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Contact Info',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        const Text('Contact Info', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        _buildFooterInfo(Icons.location_on_outlined, CompanyContact.fullAddress), // Thêm địa chỉ
+        _buildFooterInfo(Icons.location_on_outlined, CompanyContact.fullAddress),
         _buildFooterInfo(Icons.phone_outlined, CompanyContact.phone),
         _buildFooterInfo(Icons.email_outlined, CompanyContact.email),
-        _buildFooterInfo(
-          Icons.schedule_outlined, 
-          'Mon-Fri: ${CompanyContact.operatingHours["Monday - Friday"]}',
-        ),
+        _buildFooterInfo(Icons.schedule_outlined, 'Mon-Fri: ${CompanyContact.operatingHours["Monday - Friday"]}'),
       ],
     );
   }
@@ -994,16 +673,8 @@ class HomePage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, route); // Navigate to the route
-        },
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFF999999),
-            fontSize: 14,
-          ),
-        ),
+        onTap: () => Navigator.of(context, rootNavigator: false).pushNamed(route),
+        child: Text(text, style: const TextStyle(color: Color(0xFF999999), fontSize: 14)),
       ),
     );
   }
@@ -1015,15 +686,7 @@ class HomePage extends StatelessWidget {
         children: [
           Icon(icon, color: const Color(0xFF0066cc), size: 16),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Color(0xFF999999),
-                fontSize: 14,
-              ),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(color: Color(0xFF999999), fontSize: 14))),
         ],
       ),
     );
