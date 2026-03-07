@@ -1,4 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mv/firebase_options.dart';
 import 'package:mv/screens/aboutPage.dart';
 import 'package:mv/screens/capabilitiesPage.dart';
 import 'package:mv/screens/galleryPage.dart';
@@ -8,7 +10,11 @@ import 'package:mv/widgets/navigation_bar.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   usePathUrlStrategy();
   runApp(const MVWebsite());
 }
@@ -17,7 +23,6 @@ void main() {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    // This "ShellRoute" keeps the AppShell (Navbar) on screen
     ShellRoute(
       builder: (context, state, child) {
         return AppShell(currentRoute: state.uri.path, child: child);
@@ -39,7 +44,7 @@ class MVWebsite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      routerConfig: _router, // Use the router here
+      routerConfig: _router,
       title: 'MV Machine Shop',
       debugShowCheckedModeBanner: false,
     );
@@ -59,7 +64,7 @@ class AppShell extends StatelessWidget {
         children: [
           CustomNavigationBar(
             currentRoute: currentRoute,
-            onNavigate: (route) => context.go(route), // Use context.go()
+            onNavigate: (route) => context.go(route),
           ),
           Expanded(child: child),
         ],

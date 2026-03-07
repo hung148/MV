@@ -1,61 +1,3 @@
-Fix request a Quote 
-Replace the MV placeholder in _buildLogo()
-Home screen
-Footer with contact info
-Other pages in priority order
-Polish and responsive design
-
-change the icon on top
-
-Phase 2: Make the "Contact Form" Real
-Right now, when someone fills out your "Request a Quote" form, the data disappears into thin air. Let’s make it so every inquiry is saved securely in your Firebase Database (Firestore).
-1. Enable Firestore in your Firebase Console
-Go to the Firebase Console.
-Select your project (mv-web-35fcc).
-On the left menu, click Firestore Database.
-Click Create database.
-Select a location near you.
-Start in Test Mode (this allows you to write data for 30 days while you build).
-2. Add the dependency to your Flutter project
-Open your terminal in your project folder and run:
-code
-Bash
-flutter pub add cloud_firestore
-3. Update your Code to "Save" the Inquiry
-Open the file where your _showQuoteForm logic lives (likely homePage.dart or navigation_bar.dart). Update the onPressed logic of your "Send Inquiry" button:
-code
-Dart
-// Import Firestore at the top
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-// ... inside your _showQuoteForm logic ...
-
-ElevatedButton(
-  onPressed: () async {
-    // 1. Get the data from your controllers (you'll need to add controllers to your TextFields)
-    final inquiryData = {
-      'name': nameController.text,
-      'email': emailController.text,
-      'details': detailsController.text,
-      'timestamp': FieldValue.serverTimestamp(), // Records exactly when they sent it
-    };
-
-    try {
-      // 2. Save to Firestore
-      await FirebaseFirestore.instance.collection('inquiries').add(inquiryData);
-
-      // 3. Success!
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inquiry sent! We will contact you soon.')),
-      );
-    } catch (e) {
-      // 4. Handle errors
-      print("Error saving inquiry: $e");
-    }
-  },
-  child: const Text('Send Inquiry'),
-),
 Phase 3: Get Email Notifications (The "Professional" Way)
 You don't want to check the Firebase Console every day to see if you have new leads. You want an email sent to info@mvmachineshop.com automatically.
 The easiest way to do this:
@@ -63,3 +5,16 @@ In the Firebase Console, go to Extensions.
 Search for the extension called "Trigger Email".
 Install it.
 How it works: Whenever a new document is added to your inquiries collection, this extension automatically sends an email to you with the details.
+File upload in the quote form (so customers can attach CAD files or drawings)
+Live chat widget (e.g. Tidio or Intercom)
+Admin dashboard to view/manage quotes without going into Firebase console
+Real photos in the gallery instead of placeholder icons
+Animations and scroll transitions to make the site feel more polished
+A blog or news section for SEO
+Customer testimonials / reviews section
+Quote status emails (e.g. "We've reviewed your request...")
+Analytics with Google Analytics or Firebase Analytics to see where visitors come from
+SEO meta tags and sitemap so Google can find you
+Custom domain name instead of the default Firebase hosting URL
+Performance optimizations for faster load times
+PWA support so the site works offline

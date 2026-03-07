@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "595994118808",
-    "project_id": "apartment-management-app-776b9",
-    "storage_bucket": "apartment-management-app-776b9.firebasestorage.app"
+    "project_number": "997330990310",
+    "project_id": "mv-web-35fcc",
+    "storage_bucket": "mv-web-35fcc.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:595994118808:android:f099dea390668bee271eed",
-        "android_client_info": {
-          "package_name": "com.example.apartment_management_project_2"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyA6q4ZVW3A5azPVqQSt1GE0WTPcaS_sKkQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:595994118808:android:4a603df507ea279c271eed",
+        "mobilesdk_app_id": "1:997330990310:android:d6b7ec16123d19c567f727",
         "android_client_info": {
           "package_name": "com.example.mv"
         }
@@ -34,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA6q4ZVW3A5azPVqQSt1GE0WTPcaS_sKkQ"
+          "current_key": "AIzaSyBYcSo9458GBFGlcnvxHOysUZfWJbi5lQw"
         }
       ],
       "services": {

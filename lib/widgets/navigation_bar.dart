@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/styles.dart';
+import 'package:mv/widgets/quote_form.dart';
 
 class CustomNavigationBar extends StatefulWidget {
   final String currentRoute;
@@ -156,7 +157,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         child: ElevatedButton(
-          onPressed: _showQuoteForm,
+          onPressed: () => showQuoteDialog(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF0066cc),
             foregroundColor: Colors.white,
@@ -199,71 +200,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
     widget.onNavigate(route);
   }
 
-  void _showQuoteForm() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500),
-          padding: const EdgeInsets.all(32),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Request a Quote', style: ShopStyles.heading),
-                const SizedBox(height: 8),
-                Text(
-                  'Submit your requirements or contact us directly at ${CompanyContact.phone}',
-                  style: ShopStyles.body,
-                ),
-                const Divider(height: 40),
-                _buildTextField('Full Name', Icons.person_outline),
-                const SizedBox(height: 16),
-                _buildTextField('Email Address', Icons.email_outlined),
-                const SizedBox(height: 16),
-                _buildTextField('Project Details', Icons.description_outlined, maxLines: 3),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ShopStyles.primaryButton,
-                    child: const Text('Send Inquiry'),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Shop Location & Hours:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(CompanyContact.fullAddress, style: ShopStyles.body),
-                Text('Mon-Fri: ${CompanyContact.operatingHours["Monday - Friday"]}', style: ShopStyles.body),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTextField(String label, IconData icon, {int maxLines = 1}) {
-    return TextFormField(
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: 20),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF0066cc), width: 2),
-        ),
-      ),
-    );
-  }
 }
 
 class _NavBarLink extends StatefulWidget {
