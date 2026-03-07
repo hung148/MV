@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/responsive.dart';
-import 'package:mv/widgets/styles.dart';
 import 'package:mv/widgets/quote_form.dart';
 
 // Renamed from HomePage to HomePageContent.
