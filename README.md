@@ -9,10 +9,7 @@ This is a **Flutter web application** for your CNC Machine Shop, designed to sho
 - [Features](#features)  
 - [Technologies](#technologies)  
 - [Setup](#setup)  
-- [Usage](#usage)  
-- [Folder Structure](#folder-structure)  
-- [Contributing](#contributing)  
-- [License](#license)  
+- [Note](#note)  
 
 ---
 
@@ -43,3 +40,10 @@ This is a **Flutter web application** for your CNC Machine Shop, designed to sho
 ```bash
 git clone https://github.com/hung148/MV.git
 cd MV
+```
+
+---
+
+## Note
+
+- Built as a project with AI-assisted development
