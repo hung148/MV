@@ -31,7 +31,6 @@ This is a **Flutter web application** for your CNC Machine Shop, designed to sho
 - **Frontend:** Flutter (Web)  
 - **Backend:** Firebase  
   - Firestore (Database)  
-  - Firebase Authentication  
   - Firebase Hosting  
 - **Languages:** Dart, HTML, CSS  
 
