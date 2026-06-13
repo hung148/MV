@@ -48,3 +48,5 @@ app.*.map.json
 lib/firebase_options.dart
 google-services.json
 GoogleService-Info.plist
+
+todo.txt

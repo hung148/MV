@@ -30,14 +30,19 @@ class AppFooter extends StatelessWidget {
                       ],
                     )
                   : Column(
-                      children: [
-                        _buildSection1(r),
-                        SizedBox(height: r.spacingL),
-                        _buildSection2(context, r),
-                        SizedBox(height: r.spacingL),
-                        _buildSection3(r),
-                      ],
-                    ),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSection1(r),
+                      SizedBox(height: r.spacingL),
+                      const Divider(color: Color(0xFF333333)),
+                      SizedBox(height: r.spacingL),
+                      _buildSection2(context, r),
+                      SizedBox(height: r.spacingL),
+                      const Divider(color: Color(0xFF333333)),
+                      SizedBox(height: r.spacingL),
+                      _buildSection3(r),
+                    ],
+                  ),
               SizedBox(height: r.spacingXL),
               const Divider(color: Color(0xFF333333)),
               SizedBox(height: r.spacingM),
@@ -59,9 +64,17 @@ class AppFooter extends StatelessWidget {
       children: [
         Text(CompanyContact.name, style: TextStyle(color: Colors.white, fontSize: r.body + 4, fontWeight: FontWeight.bold)),
         SizedBox(height: r.spacingXS),
-        Text(CompanyContact.tagline, style: TextStyle(color: const Color(0xFF0066cc), fontSize: r.caption + 1, fontWeight: FontWeight.w500)),
-        SizedBox(height: r.spacingM),
-        Text('Precision CNC machining and manufacturing solutions for industries worldwide.', style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption + 1, height: 1.5)),
+        Padding(
+          padding: const EdgeInsets.only(left: 12), 
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(CompanyContact.tagline, style: TextStyle(color: const Color(0xFF0066cc), fontSize: r.caption + 1, fontWeight: FontWeight.w500)),
+              SizedBox(height: r.spacingM),
+              Text('Precision CNC machining and manufacturing solutions for industries worldwide.', style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption + 1, height: 1.5)),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -72,10 +85,18 @@ class AppFooter extends StatelessWidget {
       children: [
         Text('Quick Links', style: TextStyle(color: Colors.white, fontSize: r.body, fontWeight: FontWeight.bold)),
         SizedBox(height: r.spacingM),
-        _buildLink(context, r, 'Services', '/services'),
-        _buildLink(context, r, 'Capabilities', '/capabilities'),
-        _buildLink(context, r, 'About Us', '/about'),
-        _buildLink(context, r, 'Gallery', '/gallery'),
+        Padding(
+          padding: const EdgeInsets.only(left: 12),  // indent content
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLink(context, r, 'Services', '/services'),
+              _buildLink(context, r, 'Capabilities', '/capabilities'),
+              _buildLink(context, r, 'About Us', '/about'),
+              _buildLink(context, r, 'Gallery', '/gallery'),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -86,10 +107,18 @@ class AppFooter extends StatelessWidget {
       children: [
         Text('Contact Info', style: TextStyle(color: Colors.white, fontSize: r.body, fontWeight: FontWeight.bold)),
         SizedBox(height: r.spacingM),
-        _buildInfo(r, Icons.location_on_outlined, CompanyContact.fullAddress, url: CompanyContact.googleMapsUrl),
-        _buildInfo(r, Icons.phone_outlined, CompanyContact.phone),
-        _buildInfo(r, Icons.email_outlined, CompanyContact.email),
-        _buildInfo(r, Icons.schedule_outlined, 'Mon–Fri: ${CompanyContact.operatingHours["Monday - Friday"]}'),
+        Padding(
+          padding: const EdgeInsets.only(left: 12),  // indent content
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfo(r, Icons.location_on_outlined, CompanyContact.fullAddress, url: CompanyContact.googleMapsUrl),
+              _buildInfo(r, Icons.phone_outlined, CompanyContact.phone),
+              _buildInfo(r, Icons.email_outlined, CompanyContact.email),
+              _buildInfo(r, Icons.schedule_outlined, 'Mon–Fri: ${CompanyContact.operatingHours["Monday - Friday"]}'),
+            ],
+          ),
+        ),
       ],
     );
   }

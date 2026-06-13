@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
