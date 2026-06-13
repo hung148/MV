@@ -142,7 +142,7 @@ class HomePageContent extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'Why MV Machine Shop?',
+                'Why MV Manufacturing LLC?',
                 style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
                 textAlign: TextAlign.center,
               ),
