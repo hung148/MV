@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mv/widgets/footer.dart';
 
 // Renamed from HomePage to HomePageContent.
 // No Scaffold or CustomNavigationBar — AppShell in main.dart handles both.
@@ -22,7 +23,7 @@ class HomePageContent extends StatelessWidget {
           _buildWhyChooseUsSection(context),
           _buildStatsSection(context),
           _buildCTASection(context),
-          _buildFooter(context),
+          const AppFooter(),
         ],
       ),
     );
@@ -93,7 +94,7 @@ class HomePageContent extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => context.go('/capabilities'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: const Color(0xFF0d47a1),
@@ -424,115 +425,6 @@ class HomePageContent extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    final r = Responsive.of(context);
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: r.footerPaddingVertical, horizontal: 24),
-      color: const Color(0xFF1a1a1a),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: Column(
-            children: [
-              r.isDesktop
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _buildFooterSection1(r)),
-                        SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildFooterSection2(context, r)),
-                        SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildFooterSection3(r)),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        _buildFooterSection1(r),
-                        SizedBox(height: r.spacingL),
-                        _buildFooterSection2(context, r),
-                        SizedBox(height: r.spacingL),
-                        _buildFooterSection3(r),
-                      ],
-                    ),
-              SizedBox(height: r.spacingXL),
-              const Divider(color: Color(0xFF333333)),
-              SizedBox(height: r.spacingM),
-              Text(
-                '© ${DateTime.now().year} ${CompanyContact.name}. All rights reserved.',
-                style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooterSection1(Responsive r) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(CompanyContact.name, style: TextStyle(color: Colors.white, fontSize: r.body + 4, fontWeight: FontWeight.bold)),
-        SizedBox(height: r.spacingXS),
-        Text(CompanyContact.tagline, style: TextStyle(color: const Color(0xFF0066cc), fontSize: r.caption + 1, fontWeight: FontWeight.w500)),
-        SizedBox(height: r.spacingM),
-        Text('Precision CNC machining and manufacturing solutions for industries worldwide.', style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption + 1, height: 1.5)),
-      ],
-    );
-  }
-
-  Widget _buildFooterSection2(BuildContext context, Responsive r) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Quick Links', style: TextStyle(color: Colors.white, fontSize: r.body, fontWeight: FontWeight.bold)),
-        SizedBox(height: r.spacingM),
-        _buildFooterLink(context, r, 'Services', '/services'),
-        _buildFooterLink(context, r, 'Capabilities', '/capabilities'),
-        _buildFooterLink(context, r, 'About Us', '/about'),
-        _buildFooterLink(context, r, 'Gallery', '/gallery'),
-      ],
-    );
-  }
-
-  Widget _buildFooterSection3(Responsive r) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Contact Info', style: TextStyle(color: Colors.white, fontSize: r.body, fontWeight: FontWeight.bold)),
-        SizedBox(height: r.spacingM),
-        _buildFooterInfo(r, Icons.location_on_outlined, CompanyContact.fullAddress),
-        _buildFooterInfo(r, Icons.phone_outlined, CompanyContact.phone),
-        _buildFooterInfo(r, Icons.email_outlined, CompanyContact.email),
-        _buildFooterInfo(r, Icons.schedule_outlined, 'Mon-Fri: ${CompanyContact.operatingHours["Monday - Friday"]}'),
-      ],
-    );
-  }
-
-  Widget _buildFooterLink(BuildContext context, Responsive r, String text, String route) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: r.spacingXS),
-      child: InkWell(
-        onTap: () => Navigator.of(context, rootNavigator: false).pushNamed(route),
-        child: Text(text, style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption + 1)),
-      ),
-    );
-  }
-
-  Widget _buildFooterInfo(Responsive r, IconData icon, String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: r.spacingXS),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF0066cc), size: r.iconSmall),
-          SizedBox(width: r.spacingXS),
-          Expanded(child: Text(text, style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption + 1))),
-        ],
       ),
     );
   }

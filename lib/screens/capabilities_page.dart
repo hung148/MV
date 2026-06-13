@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
+import 'package:mv/widgets/footer.dart';
 
 class CapabilitiesPage extends StatelessWidget {
   const CapabilitiesPage({super.key});
@@ -20,7 +20,7 @@ class CapabilitiesPage extends StatelessWidget {
           _buildCapacitySection(context),
           _buildCertificationsSection(context),
           _buildCTASection(context),
-          _buildFooter(context),
+          const AppFooter(),
         ],
       ),
     );
@@ -386,28 +386,6 @@ class CapabilitiesPage extends StatelessWidget {
                 ),
                 child: Text('Get Started', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    final r = Responsive.of(context);
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: r.footerPaddingVertical, horizontal: 24),
-      color: const Color(0xFF1a1a1a),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: Column(
-            children: [
-              const Divider(color: Color(0xFF333333)),
-              SizedBox(height: r.spacingM),
-              Text('© ${DateTime.now().year} ${CompanyContact.name}. All rights reserved.', style: TextStyle(color: const Color(0xFF999999), fontSize: r.caption + 1), textAlign: TextAlign.center),
-              SizedBox(height: r.spacingXS),
-              Text('${CompanyContact.fullAddress} | ${CompanyContact.phone}', style: TextStyle(color: const Color(0xFF666666), fontSize: r.caption), textAlign: TextAlign.center),
             ],
           ),
         ),

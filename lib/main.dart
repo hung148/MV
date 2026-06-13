@@ -1,11 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mv/firebase_options.dart';
-import 'package:mv/screens/aboutPage.dart';
-import 'package:mv/screens/capabilitiesPage.dart';
-import 'package:mv/screens/galleryPage.dart';
-import 'package:mv/screens/homePage.dart';
-import 'package:mv/screens/servicesPage.dart';
+import 'package:mv/screens/about_page.dart';
+import 'package:mv/screens/capabilities_page.dart';
+import 'package:mv/screens/gallery_page.dart';
+import 'package:mv/screens/home_page.dart';
+import 'package:mv/screens/services_page.dart';
 import 'package:mv/widgets/navigation_bar.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +45,7 @@ class MVWebsite extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: _router,
-      title: 'MV Machine Shop',
+      title: 'MV Manufacturing LLC',
       debugShowCheckedModeBanner: false,
     );
   }
