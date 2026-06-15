@@ -102,7 +102,7 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
         ),
         child: Padding(
           padding: EdgeInsets.all(hPad),
-          child: _isSuccess ? _buildSuccess() : _buildForm(),
+          child: _isSuccess ? _buildSuccess() : _buildForm(isMobile),
         ),
       ),
     );
@@ -151,7 +151,7 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
 
   // ── Form ────────────────────────────────────────────────────────────────────
 
-  Widget _buildForm() {
+  Widget _buildForm(bool isMobile) {
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
@@ -165,7 +165,7 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
               'Submit your requirements or contact us directly at ${CompanyContact.phone}',
               style: ShopStyles.body,
             ),
-            const Divider(height: 40),
+            Divider(height: isMobile ? 24 : 40),
 
             _buildField(
               controller: _nameController,
@@ -213,7 +213,7 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
               controller: _detailsController,
               label: 'Project Details',
               icon: Icons.description_outlined,
-              maxLines: 4,
+              maxLines: isMobile ? 2 : 4,
               maxLength: 1000,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Please describe your project';
@@ -247,12 +247,11 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
               ),
             ],
 
-            const SizedBox(height: 24),
+            SizedBox(height: isMobile ? 12 : 24),
 
             // Submit button
             SizedBox(
               width: double.infinity,
-              height: 52,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submit,
                 style: ShopStyles.primaryButton,
