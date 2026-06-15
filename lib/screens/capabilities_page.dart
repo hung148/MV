@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
@@ -6,20 +7,18 @@ import 'package:mv/widgets/footer.dart';
 class CapabilitiesPage extends StatelessWidget {
   const CapabilitiesPage({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
           _buildHeroSection(context),
-          _buildEquipmentSection(context),
-          _buildMaterialsSection(context),
-          _buildTolerancesSection(context),
-          _buildCapacitySection(context),
-          _buildCertificationsSection(context),
-          _buildCTASection(context),
+          FadeInSection(child: _buildEquipmentSection(context)),
+          FadeInSection(child: _buildMaterialsSection(context)),
+          FadeInSection(child: _buildTolerancesSection(context)),
+          FadeInSection(child: _buildCapacitySection(context)),
+          FadeInSection(child: _buildCertificationsSection(context)),
+          FadeInSection(child: _buildCTASection(context)),
           const AppFooter(),
         ],
       ),
@@ -269,8 +268,8 @@ class CapabilitiesPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory),
-                        _buildCapacityStat(r, '1-100,000+', 'Parts/Month', Icons.speed),
-                        _buildCapacityStat(r, '24/7', 'Operations', Icons.access_time),
+                        _buildCapacityStat(r, '1,000+', 'Parts/Month', Icons.speed),
+                        _buildCapacityStat(r, '24hr', 'Quote Turnaround', Icons.access_time),
                         _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing),
                       ],
                     )
@@ -280,8 +279,8 @@ class CapabilitiesPage extends StatelessWidget {
                       alignment: WrapAlignment.center,
                       children: [
                         _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory),
-                        _buildCapacityStat(r, '1-100,000+', 'Parts/Month', Icons.speed),
-                        _buildCapacityStat(r, '24/7', 'Operations', Icons.access_time),
+                        _buildCapacityStat(r, '1,000+', 'Parts/Month', Icons.speed),
+                        _buildCapacityStat(r, '24hr', 'Quote Turnaround', Icons.access_time),
                         _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing),
                       ],
                     ),
@@ -316,13 +315,10 @@ class CapabilitiesPage extends StatelessWidget {
             children: [
               Text('Certifications & Quality', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
-              GridView.count(
-                crossAxisCount: r.certGridColumns,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: r.cardSpacing,
-                mainAxisSpacing: r.cardSpacing,
-                childAspectRatio: r.certGridAspectRatio,
+              Wrap(
+                spacing: r.cardSpacing,
+                runSpacing: r.cardSpacing,
+                alignment: WrapAlignment.center,
                 children: [
                   _buildCertCard(r, 'AS9100D', 'Aerospace Quality'),
                   _buildCertCard(r, 'ITAR Registered', 'Defense Compliance'),
@@ -339,6 +335,7 @@ class CapabilitiesPage extends StatelessWidget {
 
   Widget _buildCertCard(Responsive r, String title, String description) {
     return Container(
+      width: r.equipmentCardWidth ?? 300,
       padding: EdgeInsets.all(r.isMobile ? 14 : 20),
       decoration: BoxDecoration(
         color: Colors.white,

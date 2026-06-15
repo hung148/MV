@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/footer.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/responsive.dart';
@@ -47,8 +48,8 @@ class _GalleryPageState extends State<GalleryPage> {
       child: Column(
         children: [
           _buildHero(context, r),
-          _buildGrid(context, r),
-          _buildCTASection(context, r),
+          FadeInSection(child: _buildGrid(context, r)),
+          FadeInSection(child: _buildCTASection(context, r)),
           const AppFooter(),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
@@ -13,11 +14,11 @@ class ServicesPage extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildHeroSection(context),
-          _buildServicesGrid(context),
-          _buildProcessSection(context),
-          _buildIndustriesSection(context),
-          _buildCTASection(context),
+          FadeInSection(child: _buildHeroSection(context)),
+          FadeInSection(child: _buildServicesGrid(context)),
+          FadeInSection(child: _buildProcessSection(context)),
+          FadeInSection(child: _buildIndustriesSection(context)),
+          FadeInSection(child: _buildCTASection(context)),
           const AppFooter(),
         ],
       ),

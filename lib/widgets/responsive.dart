@@ -151,7 +151,7 @@ class Responsive {
   /// Number of columns for industries grid
   int get industryGridColumns => isMobile ? 2 : 4;
 
-  double get industryGridAspectRatio => isMobile ? 1.2 : 1.5;
+  double get industryGridAspectRatio => isMobile ? 1.0 : 1.2;
 
   // ─── Process steps ───────────────────────────────────────────────────────
 

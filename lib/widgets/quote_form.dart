@@ -13,7 +13,7 @@ import 'package:mv/widgets/styles.dart';
 void showQuoteDialog(BuildContext context) {
   showDialog(
     context: context,
-    barrierDismissible: false,
+    barrierDismissible: true,
     builder: (_) => const QuoteFormDialog(),
   );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
@@ -14,12 +15,12 @@ class AboutPage extends StatelessWidget {
       child: Column(
         children: [
           _buildHeroSection(context),
-          _buildStorySection(context),
-          _buildMissionSection(context),
-          _buildValuesSection(context),
-          _buildTeamSection(context),
-          _buildTimelineSection(context),
-          _buildCTASection(context),
+          FadeInSection(child: _buildStorySection(context)),
+          FadeInSection(child: _buildMissionSection(context)),
+          FadeInSection(child: _buildValuesSection(context)),
+          FadeInSection(child: _buildTeamSection(context)),
+          FadeInSection(child: _buildTimelineSection(context)),
+          FadeInSection(child: _buildCTASection(context)),
           const AppFooter(),
         ],
       ),

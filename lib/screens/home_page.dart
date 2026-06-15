@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
+import 'package:mv/widgets/fade_in_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mv/widgets/footer.dart';
 
-// Renamed from HomePage to HomePageContent.
-// No Scaffold or CustomNavigationBar — AppShell in main.dart handles both.
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +14,12 @@ class HomePageContent extends StatelessWidget {
       child: Column(
         children: [
           _buildHeroSection(context),
-          _buildFeaturesSection(context),
-          _buildServicesSection(context),
-          _buildCapabilitiesSection(context),
-          _buildWhyChooseUsSection(context),
-          _buildStatsSection(context),
-          _buildCTASection(context),
+          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildFeaturesSection(context)),
+          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildServicesSection(context)),
+          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildCapabilitiesSection(context)),
+          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildWhyChooseUsSection(context)),
+          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildStatsSection(context)),
+          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildCTASection(context)),
           const AppFooter(),
         ],
       ),
@@ -55,74 +52,76 @@ class HomePageContent extends StatelessWidget {
             ),
           ),
           Center(
-            child: Container(
-              padding: r.pagePadding,
-              constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Precision CNC Manufacturing',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: r.displayHeading,
-                      fontWeight: FontWeight.bold,
-                      height: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: r.spacingL),
-                  Text(
-                    'Your trusted partner for high-quality machining solutions',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: r.bodyLarge,
-                      fontWeight: FontWeight.w300,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: r.spacingM),
-                  Text(
-                    'From prototype to production, we deliver excellence in every part',
-                    style: TextStyle(color: const Color(0xFFE3F2FD), fontSize: r.body + 2),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: r.spacingXL),
-                  Wrap(
-                    spacing: r.spacingM,
-                    runSpacing: r.spacingM,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => context.go('/capabilities'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF0d47a1),
-                          padding: r.primaryButtonPadding,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          elevation: 4,
-                        ),
-                        child: Text(
-                          'View Our Capabilities',
-                          style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
-                        ),
+            child: FadeInSection(
+              child: Container(
+                padding: r.pagePadding,
+                constraints: BoxConstraints(maxWidth: r.maxContentWidth),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Precision CNC Manufacturing',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.displayHeading,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
                       ),
-                      OutlinedButton(
-                        onPressed: () => showQuoteDialog(context),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white, width: 2),
-                          padding: r.primaryButtonPadding,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                        child: Text(
-                          'Get a Quote',
-                          style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
-                        ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: r.spacingL),
+                    Text(
+                      'Your trusted partner for high-quality machining solutions',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.bodyLarge,
+                        fontWeight: FontWeight.w300,
                       ),
-                    ],
-                  ),
-                ],
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: r.spacingM),
+                    Text(
+                      'From prototype to production — owner-operated, personally inspected, every part.',
+                      style: TextStyle(color: const Color(0xFFE3F2FD), fontSize: r.body + 2),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: r.spacingXL),
+                    Wrap(
+                      spacing: r.spacingM,
+                      runSpacing: r.spacingM,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () => context.go('/capabilities'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF0d47a1),
+                            padding: r.primaryButtonPadding,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            elevation: 4,
+                          ),
+                          child: Text(
+                            'View Our Capabilities',
+                            style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        OutlinedButton(
+                          onPressed: () => showQuoteDialog(context),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white, width: 2),
+                            padding: r.primaryButtonPadding,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          ),
+                          child: Text(
+                            'Get a Quote',
+                            style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -148,7 +147,7 @@ class HomePageContent extends StatelessWidget {
               ),
               SizedBox(height: r.spacingM),
               Text(
-                'Industry-leading precision and reliability',
+                'Precision machining with a personal touch — every job handled by the owner',
                 style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)),
                 textAlign: TextAlign.center,
               ),
@@ -159,8 +158,8 @@ class HomePageContent extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 children: [
                   _buildFeatureCard(r, icon: Icons.precision_manufacturing, title: 'Precision Engineering', description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment'),
-                  _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times'),
-                  _buildFeatureCard(r, icon: Icons.verified, title: 'Quality Assured', description: 'Rigorous inspection standards and personal quality control on every part'),
+                  _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times to keep your project moving'),
+                  _buildFeatureCard(r, icon: Icons.person, title: 'Owner-Operated', description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality'),
                 ],
               ),
             ],
@@ -185,15 +184,15 @@ class HomePageContent extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(r.spacingM),
             decoration: BoxDecoration(
-              color: const Color(0xFF0d47a1).withValues(alpha: 0.1),
+              color: const Color(0xFF0d47a1).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(50),
             ),
-            child: Icon(icon, size: r.iconHero, color: const Color(0xFF0d47a1)),
+            child: Icon(icon, size: r.iconLarge, color: const Color(0xFF0d47a1)),
           ),
-          SizedBox(height: r.spacingL),
+          SizedBox(height: r.spacingM),
           Text(title, style: TextStyle(fontSize: r.heading3, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
           SizedBox(height: r.spacingS),
-          Text(description, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666), height: 1.5), textAlign: TextAlign.center),
+          Text(description, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666), height: 1.6), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -209,19 +208,19 @@ class HomePageContent extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              Text('Our Services', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+              Text('What We Do', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
               SizedBox(height: r.spacingM),
-              Text('Comprehensive machining solutions for every need', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
+              Text('Full-service CNC machining from prototype to production run', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.cardSpacing,
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildServiceCard(r, title: 'CNC Milling', description: '3-axis milling for complex geometries', imageIcon: Icons.settings),
-                  _buildServiceCard(r, title: 'CNC Turning', description: 'High-precision turning for cylindrical components', imageIcon: Icons.rotate_right),
-                  _buildServiceCard(r, title: 'Prototyping', description: 'Rapid prototyping from concept to finished part', imageIcon: Icons.science),
-                  _buildServiceCard(r, title: 'Production Runs', description: 'Low to medium volume manufacturing capabilities', imageIcon: Icons.factory),
+                  _buildServiceCard(r, imageIcon: Icons.settings, title: 'CNC Milling', description: '3-axis milling for complex parts and tight tolerances'),
+                  _buildServiceCard(r, imageIcon: Icons.rotate_right, title: 'CNC Turning', description: 'Precision turning for cylindrical parts up to 12" diameter'),
+                  _buildServiceCard(r, imageIcon: Icons.science, title: 'Rapid Prototyping', description: 'Fast single-piece and low-volume prototype runs'),
+                  _buildServiceCard(r, imageIcon: Icons.factory, title: 'Production Runs', description: 'Consistent quality on repeat orders up to 1,000+ parts/month'),
                 ],
               ),
             ],
@@ -231,14 +230,15 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(Responsive r, {required String title, required String description, required IconData imageIcon}) {
+  Widget _buildServiceCard(Responsive r, {required IconData imageIcon, required String title, required String description}) {
     return Container(
       width: r.serviceCardWidth,
-      padding: EdgeInsets.all(r.cardPadding - 4),
+      height: r.serviceCardHeight,
+      padding: EdgeInsets.all(r.cardPadding),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(r.cardRadius),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -318,20 +318,20 @@ class HomePageContent extends StatelessWidget {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '1 Year', description: 'Founded in 2025 with a passion for precision machining')),
+                        Expanded(child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing')),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu, master machinist')),
+                        Expanded(child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist')),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated equipment for precision manufacturing')),
+                        Expanded(child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work')),
                       ],
                     )
                   : Column(
                       children: [
-                        _buildExperiencePoint(r, icon: Icons.calendar_today, title: '1 Year', description: 'Founded in 2025 with a passion for precision machining'),
+                        _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing'),
                         SizedBox(height: r.spacingXL),
-                        _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu, master machinist'),
+                        _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist'),
                         SizedBox(height: r.spacingXL),
-                        _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated equipment for precision manufacturing'),
+                        _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work'),
                       ],
                     ),
             ],
@@ -366,7 +366,7 @@ class HomePageContent extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildStatItem(r, '2', 'CNC Machines'),
-                    _buildStatItem(r, '99.8%', 'Quality Rate'),
+                    _buildStatItem(r, '1,000+', 'Parts/Month Capacity'),
                     _buildStatItem(r, '24hr', 'Quote Turnaround'),
                   ],
                 )
@@ -376,7 +376,7 @@ class HomePageContent extends StatelessWidget {
                   alignment: WrapAlignment.center,
                   children: [
                     _buildStatItem(r, '2', 'CNC Machines'),
-                    _buildStatItem(r, '99.8%', 'Quality Rate'),
+                    _buildStatItem(r, '1,000+', 'Parts/Month Capacity'),
                     _buildStatItem(r, '24hr', 'Quote Turnaround'),
                   ],
                 ),
@@ -388,7 +388,10 @@ class HomePageContent extends StatelessWidget {
   Widget _buildStatItem(Responsive r, String number, String label) {
     return Column(
       children: [
-        Text(number, style: TextStyle(fontSize: r.statNumber, fontWeight: FontWeight.bold, color: const Color(0xFF0066cc))),
+        AnimatedCounter(
+          end: number,
+          style: TextStyle(fontSize: r.statNumber, fontWeight: FontWeight.bold, color: const Color(0xFF0066cc)),
+        ),
         SizedBox(height: r.spacingXS),
         Text(label, style: TextStyle(fontSize: r.body, color: const Color(0xFFcccccc)), textAlign: TextAlign.center),
       ],
@@ -407,7 +410,7 @@ class HomePageContent extends StatelessWidget {
             children: [
               Text('Ready to Get Started?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
               SizedBox(height: r.spacingM),
-              Text('Contact us today for a free quote on your next project', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
+              Text('Send us your drawings and get a quote within 24 hours', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
               SizedBox(height: r.spacingXL),
               ElevatedButton(
                 onPressed: () => showQuoteDialog(context),
