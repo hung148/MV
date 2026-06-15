@@ -13,16 +13,24 @@ class GalleryPage extends StatefulWidget {
 class _GalleryPageState extends State<GalleryPage> {
   // Add all your image filenames here
   final List<String> _images = [
-    'assets/images/gallery/gallery_1.png',
-    'assets/images/gallery/gallery_2.png',
-    'assets/images/gallery/gallery_3.png',
-    'assets/images/gallery/gallery_4.png',
-    'assets/images/gallery/gallery_5.png',
-    'assets/images/gallery/gallery_6.png',
-    'assets/images/gallery/gallery_7.png',
-    'assets/images/gallery/gallery_8.png',
+    'assets/images/gallery/gallery_1.webp',
+    'assets/images/gallery/gallery_2.webp',
+    'assets/images/gallery/gallery_3.webp',
+    'assets/images/gallery/gallery_4.webp',
+    'assets/images/gallery/gallery_5.webp',
+    'assets/images/gallery/gallery_6.webp',
+    'assets/images/gallery/gallery_7.webp',
+    'assets/images/gallery/gallery_8.webp',
     // add more..
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (final path in _images) {
+      precacheImage(AssetImage(path), context);
+    }
+  }
 
   void _openLightbox(BuildContext context, int startIndex) {
     showDialog(
@@ -97,6 +105,18 @@ class _GalleryPageState extends State<GalleryPage> {
                   child: Image.asset(
                     _images[index],
                     fit: BoxFit.cover,
+                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                      if (wasSynchronouslyLoaded || frame != null) return child;
+                      return Container(
+                        color: const Color(0xFFe0e0e0),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF0066cc),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               );
