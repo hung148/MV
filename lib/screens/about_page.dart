@@ -42,9 +42,9 @@ class AboutPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              Text('About MV Machine Shop', style: TextStyle(fontSize: r.displayHeading, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              Text('About MV Manufacturing LLC', style: TextStyle(fontSize: r.displayHeading, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
               SizedBox(height: r.spacingM),
-              Text('Building precision parts and lasting partnerships since 1999', style: TextStyle(fontSize: r.heroSubHeading, color: Colors.white70), textAlign: TextAlign.center),
+              Text('Building precision parts and lasting partnerships since 2025', style: TextStyle(fontSize: r.heroSubHeading, color: Colors.white70), textAlign: TextAlign.center),
             ],
           ),
         ),
@@ -65,13 +65,13 @@ class AboutPage extends StatelessWidget {
               Text('Our Story', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingL),
               Text(
-                'Founded in 1999 by master machinist Michael Vasquez, MV Machine Shop began in a modest 2,000 square foot facility with just three CNC machines and a vision for excellence. What started as a small job shop serving local manufacturers has grown into a full-service precision machining company trusted by aerospace, medical, and industrial clients nationwide.',
+                'Founded in 2025 by master machinist Minh Vu, MV Manufacturing LLC began in a modest 1,300 square foot facility with just one CNC machine and a vision for excellence. What started as a small job shop serving local manufacturers has grown into a full-service precision machining company trusted by aerospace, medical, and industrial clients nationwide.',
                 style: TextStyle(fontSize: r.bodyProse, color: const Color(0xFF333333), height: 1.8),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: r.spacingM),
               Text(
-                'Today, we operate from a 25,000 square foot facility housing state-of-the-art CNC equipment and employ over 50 skilled professionals. Our commitment to quality, innovation, and customer service remains as strong as it was on day one.',
+                'Today, we operate from our facility with two CNC machines, with Minh hands-on at every step. Our commitment to quality, innovation, and customer service remains as strong as it was on day one.',
                 style: TextStyle(fontSize: r.bodyProse, color: const Color(0xFF333333), height: 1.8),
                 textAlign: TextAlign.center,
               ),
@@ -188,9 +188,7 @@ class AboutPage extends StatelessWidget {
                 runSpacing: r.spacingXL,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildTeamMember(r, name: 'Michael Vasquez', title: 'Founder & CEO', description: 'Master machinist with 35+ years of experience. Leads strategic vision and client relationships.'),
-                  _buildTeamMember(r, name: 'Sarah Chen', title: 'VP of Operations', description: 'Aerospace engineer overseeing production, quality control, and continuous improvement initiatives.'),
-                  _buildTeamMember(r, name: 'Robert Martinez', title: 'Director of Engineering', description: 'CAD/CAM expert managing programming team and technical customer support.'),
+                  _buildTeamMember(r, name: 'Minh Vu', title: 'Founder & Owner', description: 'Master machinist and sole operator, personally handling every job from start to finish.'),
                 ],
               ),
             ],
@@ -237,12 +235,8 @@ class AboutPage extends StatelessWidget {
             children: [
               Text('Our Journey', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
-              _buildTimelineItem(r, '1999', 'Founded', 'MV Machine Shop established with 3 CNC machines'),
-              _buildTimelineItem(r, '2005', 'ISO 9001', 'Achieved ISO 9001 certification'),
-              _buildTimelineItem(r, '2010', 'Facility Expansion', 'Moved to 15,000 sq ft facility'),
-              _buildTimelineItem(r, '2015', 'AS9100 Certified', 'Entered aerospace market with AS9100D'),
-              _buildTimelineItem(r, '2020', 'Major Growth', 'Expanded to 25,000 sq ft, added 5-axis capabilities'),
-              _buildTimelineItem(r, '2024', 'Medical Certification', 'Achieved ISO 13485 for medical device manufacturing'),
+              _buildTimelineItem(r, '2025', 'Founded', 'MV Manufacturing LLC established with 1 CNC machine in a 1,300 sq ft facility'),
+              _buildTimelineItem(r, '2026', 'Growing', 'Added a second CNC machine, continuing to build client relationships'),
             ],
           ),
         ),

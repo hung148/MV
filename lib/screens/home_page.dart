@@ -160,7 +160,7 @@ class HomePageContent extends StatelessWidget {
                 children: [
                   _buildFeatureCard(r, icon: Icons.precision_manufacturing, title: 'Precision Engineering', description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment'),
                   _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times'),
-                  _buildFeatureCard(r, icon: Icons.verified, title: 'Quality Assured', description: 'ISO 9001 certified processes and rigorous inspection standards'),
+                  _buildFeatureCard(r, icon: Icons.verified, title: 'Quality Assured', description: 'Rigorous inspection standards and personal quality control on every part'),
                 ],
               ),
             ],
@@ -218,10 +218,10 @@ class HomePageContent extends StatelessWidget {
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildServiceCard(r, title: 'CNC Milling', description: '3-axis and 5-axis milling for complex geometries', imageIcon: Icons.settings),
+                  _buildServiceCard(r, title: 'CNC Milling', description: '3-axis milling for complex geometries', imageIcon: Icons.settings),
                   _buildServiceCard(r, title: 'CNC Turning', description: 'High-precision turning for cylindrical components', imageIcon: Icons.rotate_right),
                   _buildServiceCard(r, title: 'Prototyping', description: 'Rapid prototyping from concept to finished part', imageIcon: Icons.science),
-                  _buildServiceCard(r, title: 'Production Runs', description: 'Low to high volume manufacturing capabilities', imageIcon: Icons.factory),
+                  _buildServiceCard(r, title: 'Production Runs', description: 'Low to medium volume manufacturing capabilities', imageIcon: Icons.factory),
                 ],
               ),
             ],
@@ -318,20 +318,20 @@ class HomePageContent extends StatelessWidget {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '25+ Years', description: 'Of industry experience and continuous improvement')),
+                        Expanded(child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '1 Year', description: 'Founded in 2025 with a passion for precision machining')),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.people, title: 'Expert Team', description: 'Certified machinists and quality control specialists')),
+                        Expanded(child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu, master machinist')),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.build, title: 'Advanced Equipment', description: 'Latest CNC machines and measurement tools')),
+                        Expanded(child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated equipment for precision manufacturing')),
                       ],
                     )
                   : Column(
                       children: [
-                        _buildExperiencePoint(r, icon: Icons.calendar_today, title: '25+ Years', description: 'Of industry experience and continuous improvement'),
+                        _buildExperiencePoint(r, icon: Icons.calendar_today, title: '1 Year', description: 'Founded in 2025 with a passion for precision machining'),
                         SizedBox(height: r.spacingXL),
-                        _buildExperiencePoint(r, icon: Icons.people, title: 'Expert Team', description: 'Certified machinists and quality control specialists'),
+                        _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu, master machinist'),
                         SizedBox(height: r.spacingXL),
-                        _buildExperiencePoint(r, icon: Icons.build, title: 'Advanced Equipment', description: 'Latest CNC machines and measurement tools'),
+                        _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated equipment for precision manufacturing'),
                       ],
                     ),
             ],
@@ -365,8 +365,7 @@ class HomePageContent extends StatelessWidget {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem(r, '10,000+', 'Parts Manufactured'),
-                    _buildStatItem(r, '500+', 'Satisfied Clients'),
+                    _buildStatItem(r, '2', 'CNC Machines'),
                     _buildStatItem(r, '99.8%', 'Quality Rate'),
                     _buildStatItem(r, '24hr', 'Quote Turnaround'),
                   ],
@@ -376,8 +375,7 @@ class HomePageContent extends StatelessWidget {
                   runSpacing: r.spacingXL,
                   alignment: WrapAlignment.center,
                   children: [
-                    _buildStatItem(r, '10,000+', 'Parts Manufactured'),
-                    _buildStatItem(r, '500+', 'Satisfied Clients'),
+                    _buildStatItem(r, '2', 'CNC Machines'),
                     _buildStatItem(r, '99.8%', 'Quality Rate'),
                     _buildStatItem(r, '24hr', 'Quote Turnaround'),
                   ],

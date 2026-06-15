@@ -83,13 +83,27 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final hPad = isMobile ? 20.0 : 32.0;
+
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 520),
-        padding: const EdgeInsets.all(32),
-        child: _isSuccess ? _buildSuccess() : _buildForm(),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 40,
+        vertical: isMobile ? 16 : 24,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 520,
+          maxHeight: screenHeight * 0.92,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(hPad),
+          child: _isSuccess ? _buildSuccess() : _buildForm(),
+        ),
       ),
     );
   }

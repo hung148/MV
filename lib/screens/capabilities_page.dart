@@ -75,10 +75,8 @@ class CapabilitiesPage extends StatelessWidget {
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildEquipmentCard(r, title: '5-Axis CNC Mills', specs: ['Travel: 40" x 20" x 20"', 'Spindle speed: 12,000 RPM', 'Tool capacity: 60 tools', 'Tolerance: ±0.0005"'], icon: Icons.view_in_ar),
                   _buildEquipmentCard(r, title: 'CNC Turning Centers', specs: ['Max diameter: 12"', 'Max length: 24"', 'Live tooling capable', 'Sub-spindle equipped'], icon: Icons.rotate_90_degrees_ccw),
                   _buildEquipmentCard(r, title: 'Swiss-Type Lathes', specs: ['Bar capacity: 1.25"', 'Live tooling: 12 positions', 'Sub-spindle capable', 'High-volume production'], icon: Icons.precision_manufacturing),
-                  _buildEquipmentCard(r, title: 'Wire EDM', specs: ['Wire diameter: 0.004" - 0.012"', 'Tolerance: ±0.0002"', 'Surface finish: Ra 8', 'Hardened materials capable'], icon: Icons.bolt),
                   _buildEquipmentCard(r, title: 'CMM Inspection', specs: ['Measuring volume: 24" x 24" x 16"', 'Accuracy: 0.0001"', 'Contact and optical probing', 'Full dimensional reports'], icon: Icons.straighten),
                   _buildEquipmentCard(r, title: 'Surface Grinding', specs: ['Capacity: 24" x 12" x 12"', 'Tolerance: ±0.0002"', 'Surface finish: Ra 4', 'Magnetic and vacuum chucks'], icon: Icons.grid_on),
                 ],
@@ -273,7 +271,7 @@ class CapabilitiesPage extends StatelessWidget {
                         _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory),
                         _buildCapacityStat(r, '1-100,000+', 'Parts/Month', Icons.speed),
                         _buildCapacityStat(r, '24/7', 'Operations', Icons.access_time),
-                        _buildCapacityStat(r, '15+', 'CNC Machines', Icons.precision_manufacturing),
+                        _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing),
                       ],
                     )
                   : Wrap(
@@ -284,7 +282,7 @@ class CapabilitiesPage extends StatelessWidget {
                         _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory),
                         _buildCapacityStat(r, '1-100,000+', 'Parts/Month', Icons.speed),
                         _buildCapacityStat(r, '24/7', 'Operations', Icons.access_time),
-                        _buildCapacityStat(r, '15+', 'CNC Machines', Icons.precision_manufacturing),
+                        _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing),
                       ],
                     ),
             ],
@@ -326,10 +324,8 @@ class CapabilitiesPage extends StatelessWidget {
                 mainAxisSpacing: r.cardSpacing,
                 childAspectRatio: r.certGridAspectRatio,
                 children: [
-                  _buildCertCard(r, 'ISO 9001:2015', 'Quality Management'),
                   _buildCertCard(r, 'AS9100D', 'Aerospace Quality'),
                   _buildCertCard(r, 'ITAR Registered', 'Defense Compliance'),
-                  _buildCertCard(r, 'ISO 13485', 'Medical Devices'),
                   _buildCertCard(r, 'PPAP Level 3', 'Automotive Standards'),
                   _buildCertCard(r, 'RoHS Compliant', 'Environmental Standards'),
                 ],
