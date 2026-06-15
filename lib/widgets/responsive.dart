@@ -45,7 +45,7 @@ class Responsive {
   bool get isMobileOrTablet => isMobile || isTablet;
 
   // ─── Layout ──────────────────────────────────────────────────────────────
-
+  
   /// Max content width (used in Center + Container constraints)
   double get maxContentWidth => isDesktop ? 1200 : double.infinity;
 
@@ -136,7 +136,7 @@ class Responsive {
   /// Service card width (home page compact cards)
   double? get serviceCardWidth => isDesktop ? 280 : isTablet ? 300 : null;
 
-  double get serviceCardHeight => isMobile ? 200 : 220;
+  double get serviceCardHeight => isMobile ? 230 : 260;
 
   /// Detailed service card width (Services page full-detail cards)
   double? get detailedServiceCardWidth => isDesktop ? 550 : null;

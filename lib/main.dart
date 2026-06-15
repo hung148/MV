@@ -60,6 +60,7 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0d47a1),
       body: _AppShellBody(currentRoute: currentRoute, child: child),
     );
   }
@@ -85,10 +86,25 @@ class _AppShellBodyState extends State<_AppShellBody> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
+  }
+
+  @override
+  void didUpdateWidget(_AppShellBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
+  }
+
   void _measureNav() {
     final box = _navKey.currentContext?.findRenderObject() as RenderBox?;
     if (box != null && mounted) {
-      setState(() => _navHeight = box.size.height);
+      final newHeight = box.size.height;
+      if (newHeight != _navHeight) {
+        setState(() => _navHeight = newHeight);
+      }
     }
   }
 
@@ -99,7 +115,41 @@ class _AppShellBodyState extends State<_AppShellBody> {
         // Page content scrolls underneath, padded so it starts below the nav
         Positioned.fill(
           top: _navHeight,
-          child: widget.child,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            switchInCurve: Curves.easeIn,
+            switchOutCurve: Curves.easeOut,
+            transitionBuilder: (child, animation) {
+              // Detect whether this is the incoming or outgoing widget
+              final isIncoming = child.key == ValueKey(widget.currentRoute);
+
+              // Incoming page: fade in AFTER outgoing is gone
+              if (isIncoming) {
+                return FadeTransition(
+                  opacity: Tween<double>(begin: 0, end: 1)
+                      .animate(CurvedAnimation(
+                        parent: animation,
+                        curve: const Interval(0.5, 1.0), // starts halfway
+                      )),
+                  child: child,
+                );
+              }
+
+              // Outgoing page: fade out FIRST
+              return FadeTransition(
+                opacity: Tween<double>(begin: 1, end: 0)
+                    .animate(CurvedAnimation(
+                      parent: animation,
+                      curve: const Interval(0.0, 0.5), // ends halfway
+                    )),
+                child: child,
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey(widget.currentRoute),
+              child: widget.child,
+            ),
+          ),
         ),
         // Nav bar sits on top
         Positioned(

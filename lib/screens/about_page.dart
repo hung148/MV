@@ -14,7 +14,7 @@ class AboutPage extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildHeroSection(context),
+          FadeInSection(child: _buildHeroSection(context)),
           FadeInSection(child: _buildStorySection(context)),
           FadeInSection(child: _buildMissionSection(context)),
           FadeInSection(child: _buildValuesSection(context)),

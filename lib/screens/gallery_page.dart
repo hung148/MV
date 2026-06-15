@@ -47,7 +47,7 @@ class _GalleryPageState extends State<GalleryPage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildHero(context, r),
+          FadeInSection(child: _buildHero(context, r)),
           FadeInSection(child: _buildGrid(context, r)),
           FadeInSection(child: _buildCTASection(context, r)),
           const AppFooter(),

@@ -12,7 +12,7 @@ class CapabilitiesPage extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildHeroSection(context),
+          FadeInSection(child: _buildHeroSection(context)),
           FadeInSection(child: _buildEquipmentSection(context)),
           FadeInSection(child: _buildMaterialsSection(context)),
           FadeInSection(child: _buildTolerancesSection(context)),
