@@ -12,6 +12,7 @@ class ServicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      controller: ScrollController(),
       child: Column(
         children: [
           FadeInSection(child: _buildHeroSection(context)),

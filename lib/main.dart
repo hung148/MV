@@ -77,34 +77,21 @@ class _AppShellBody extends StatefulWidget {
 }
 
 class _AppShellBodyState extends State<_AppShellBody> {
-  final GlobalKey _navKey = GlobalKey();
-  double _navHeight = 64;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
-  }
+  // Use a fixed base height for the header or measure only the "closed" state
+  // Typically 64-80px is standard for navbars. 
+  final double _baseNavHeight = 70; 
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void didUpdateWidget(_AppShellBody oldWidget) {
     super.didUpdateWidget(oldWidget);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
-  }
-
-  void _measureNav() {
-    final box = _navKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box != null && mounted) {
-      final newHeight = box.size.height;
-      if (newHeight != _navHeight) {
-        setState(() => _navHeight = newHeight);
-      }
+    // FIX: Reset scroll position to top whenever the route changes
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -112,60 +99,47 @@ class _AppShellBodyState extends State<_AppShellBody> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Page content scrolls underneath, padded so it starts below the nav
+        // Page content
         Positioned.fill(
-          top: _navHeight,
+          // Use a fixed top value so the content doesn't "jump" when menu opens
+          top: _baseNavHeight, 
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),
-            switchInCurve: Curves.easeIn,
-            switchOutCurve: Curves.easeOut,
+            // Use layoutBuilder to ensure old pages are properly disposed
+            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+              return Stack(
+                children: <Widget>[
+                  ...previousChildren,
+                  if (currentChild != null) currentChild,
+                ],
+              );
+            },
             transitionBuilder: (child, animation) {
-              // Detect whether this is the incoming or outgoing widget
-              final isIncoming = child.key == ValueKey(widget.currentRoute);
-
-              // Incoming page: fade in AFTER outgoing is gone
-              if (isIncoming) {
-                return FadeTransition(
-                  opacity: Tween<double>(begin: 0, end: 1)
-                      .animate(CurvedAnimation(
-                        parent: animation,
-                        curve: const Interval(0.5, 1.0), // starts halfway
-                      )),
-                  child: child,
-                );
-              }
-
-              // Outgoing page: fade out FIRST
               return FadeTransition(
-                opacity: Tween<double>(begin: 1, end: 0)
-                    .animate(CurvedAnimation(
-                      parent: animation,
-                      curve: const Interval(0.0, 0.5), // ends halfway
-                    )),
+                opacity: animation,
                 child: child,
               );
             },
             child: KeyedSubtree(
-              key: ValueKey(widget.currentRoute),
-              child: widget.child,
+              // We add 'page_' prefix to ensure this key is distinct from other keys
+              key: ValueKey('page_${widget.currentRoute}'),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: widget.child,
+              ),
             ),
           ),
         ),
-        // Nav bar sits on top
+        // Nav bar sits on top and its menu will OVERLAY the content
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          child: KeyedSubtree(
-            key: _navKey,
-            child: CustomNavigationBar(
-              currentRoute: widget.currentRoute,
-              onNavigate: (route) {
-                context.go(route);
-                // Re-measure after navigation (menu may close)
-                WidgetsBinding.instance.addPostFrameCallback((_) => _measureNav());
-              },
-            ),
+          child: CustomNavigationBar(
+            currentRoute: widget.currentRoute,
+            onNavigate: (route) {
+              context.go(route);
+            },
           ),
         ),
       ],

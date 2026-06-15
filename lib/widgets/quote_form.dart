@@ -14,7 +14,8 @@ void showQuoteDialog(BuildContext context) {
   showDialog(
     context: context,
     barrierDismissible: true,
-    builder: (_) => const QuoteFormDialog(),
+    useRootNavigator: true, 
+    builder: (_) => QuoteFormDialog(key: UniqueKey()),
   );
 }
 

@@ -45,6 +45,7 @@ class _GalleryPageState extends State<GalleryPage> {
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     return SingleChildScrollView(
+      controller: ScrollController(),
       child: Column(
         children: [
           FadeInSection(child: _buildHero(context, r)),

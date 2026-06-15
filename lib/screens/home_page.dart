@@ -11,6 +11,7 @@ class HomePageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      controller: ScrollController(),
       child: Column(
         children: [
           _buildHeroSection(context),
@@ -218,7 +219,6 @@ class HomePageContent extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 children: [
                   _buildServiceCard(r, imageIcon: Icons.settings, title: 'CNC Milling', description: '3-axis milling for complex parts and tight tolerances'),
-                  _buildServiceCard(r, imageIcon: Icons.rotate_right, title: 'CNC Turning', description: 'Precision turning for cylindrical parts up to 12" diameter'),
                   _buildServiceCard(r, imageIcon: Icons.science, title: 'Rapid Prototyping', description: 'Fast single-piece and low-volume prototype runs'),
                   _buildServiceCard(r, imageIcon: Icons.factory, title: 'Production Runs', description: 'Consistent quality on repeat orders up to 1,000+ parts/month'),
                 ],

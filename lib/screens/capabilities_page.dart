@@ -10,6 +10,7 @@ class CapabilitiesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      controller: ScrollController(),
       child: Column(
         children: [
           FadeInSection(child: _buildHeroSection(context)),
@@ -74,7 +75,6 @@ class CapabilitiesPage extends StatelessWidget {
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildEquipmentCard(r, title: 'CNC Turning Centers', specs: ['Max diameter: 12"', 'Max length: 24"', 'Live tooling capable', 'Sub-spindle equipped'], icon: Icons.rotate_90_degrees_ccw),
                   _buildEquipmentCard(r, title: 'Swiss-Type Lathes', specs: ['Bar capacity: 1.25"', 'Live tooling: 12 positions', 'Sub-spindle capable', 'High-volume production'], icon: Icons.precision_manufacturing),
                   _buildEquipmentCard(r, title: 'CMM Inspection', specs: ['Measuring volume: 24" x 24" x 16"', 'Accuracy: 0.0001"', 'Contact and optical probing', 'Full dimensional reports'], icon: Icons.straighten),
                   _buildEquipmentCard(r, title: 'Surface Grinding', specs: ['Capacity: 24" x 12" x 12"', 'Tolerance: ±0.0002"', 'Surface finish: Ra 4', 'Magnetic and vacuum chucks'], icon: Icons.grid_on),
