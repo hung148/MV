@@ -75,7 +75,6 @@ class ServicesPage extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 children: [
                   _buildDetailedServiceCard(r, icon: Icons.settings, title: 'CNC Milling', description: 'Precision milling services for complex parts', features: ['3-axis capabilities', 'Tolerances to ±0.0005"', 'Prototype to production', 'Personal attention on every job']),
-                  _buildDetailedServiceCard(r, icon: Icons.rotate_right, title: 'CNC Turning', description: 'High-precision turning for cylindrical components', features: ['Live tooling capabilities', 'Diameters up to 12"', 'Bar and chuck work', 'Tight tolerances']),
                   _buildDetailedServiceCard(r, icon: Icons.science, title: 'Rapid Prototyping', description: 'Fast turnaround for prototype development', features: ['Quick quote within 24 hours', 'Single or low-volume runs', 'Design consultation available', 'Material recommendations']),
                   _buildDetailedServiceCard(r, icon: Icons.factory, title: 'Production Manufacturing', description: 'Consistent quality on every production run', features: ['Low to medium volume capabilities', 'Quality control at every step', 'Just-in-time delivery options', 'Owner-operated precision']),
                   _buildDetailedServiceCard(r, icon: Icons.precision_manufacturing, title: 'Swiss Machining', description: 'Ultra-precise parts for demanding applications', features: ['Complex geometries', 'Tight tolerances', 'Small diameter work', 'High-volume capability']),
