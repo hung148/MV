@@ -11,18 +11,15 @@ class ServicesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: ScrollController(),
-      child: Column(
-        children: [
-          FadeInSection(child: _buildHeroSection(context)),
-          FadeInSection(child: _buildServicesGrid(context)),
-          FadeInSection(child: _buildProcessSection(context)),
-          FadeInSection(child: _buildIndustriesSection(context)),
-          FadeInSection(child: _buildCTASection(context)),
-          const AppFooter(),
-        ],
-      ),
+    return Column(
+      children: [
+        FadeInSection(child: _buildHeroSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 100), child: _buildServicesGrid(context)),
+        FadeInSection(delay: Duration(milliseconds: 200), child: _buildProcessSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 300), child: _buildIndustriesSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 400), child: _buildCTASection(context)),
+        const AppFooter(),
+      ],
     );
   }
 

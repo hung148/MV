@@ -9,20 +9,17 @@ class CapabilitiesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: ScrollController(),
-      child: Column(
-        children: [
-          FadeInSection(child: _buildHeroSection(context)),
-          FadeInSection(child: _buildEquipmentSection(context)),
-          FadeInSection(child: _buildMaterialsSection(context)),
-          FadeInSection(child: _buildTolerancesSection(context)),
-          FadeInSection(child: _buildCapacitySection(context)),
-          FadeInSection(child: _buildCertificationsSection(context)),
-          FadeInSection(child: _buildCTASection(context)),
-          const AppFooter(),
-        ],
-      ),
+    return Column(
+      children: [
+        FadeInSection(child: _buildHeroSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 100), child: _buildEquipmentSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 200), child: _buildMaterialsSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 300), child: _buildTolerancesSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 400), child: _buildCapacitySection(context)),
+        FadeInSection(delay: Duration(milliseconds: 500), child: _buildCertificationsSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 600), child: _buildCTASection(context)),
+        const AppFooter(),
+      ],
     );
   }
 

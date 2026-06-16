@@ -19,7 +19,26 @@ void main() async {
   runApp(const MVWebsite());
 }
 
-// Create the router configuration
+// ─── Page transition notifier ─────────────────────────────────────────────────
+// FadeInSection listens to this. When `ready` flips to true, sections know the
+// page fade-in is complete and they can start their stagger animations.
+class PageTransitionNotifier extends InheritedNotifier<ValueNotifier<bool>> {
+  const PageTransitionNotifier({
+    super.key,
+    required ValueNotifier<bool> notifier,
+    required super.child,
+  }) : super(notifier: notifier);
+
+  /// true = page has fully faded in, sections may animate.
+  static bool readyOf(BuildContext context) {
+    final n = context
+        .dependOnInheritedWidgetOfExactType<PageTransitionNotifier>()
+        ?.notifier;
+    return n?.value ?? true; // default true so first load always animates
+  }
+}
+
+// ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
@@ -28,11 +47,11 @@ final _router = GoRouter(
         return AppShell(currentRoute: state.uri.path, child: child);
       },
       routes: [
-        GoRoute(path: '/', builder: (context, state) => const HomePageContent()),
-        GoRoute(path: '/services', builder: (context, state) => const ServicesPage()),
-        GoRoute(path: '/capabilities', builder: (context, state) => const CapabilitiesPage()),
-        GoRoute(path: '/about', builder: (context, state) => const AboutPage()),
-        GoRoute(path: '/gallery', builder: (context, state) => const GalleryPage()),
+        GoRoute(path: '/',             builder: (_, __) => const HomePageContent()),
+        GoRoute(path: '/services',     builder: (_, __) => const ServicesPage()),
+        GoRoute(path: '/capabilities', builder: (_, __) => const CapabilitiesPage()),
+        GoRoute(path: '/about',        builder: (_, __) => const AboutPage()),
+        GoRoute(path: '/gallery',      builder: (_, __) => const GalleryPage()),
       ],
     ),
   ],
@@ -51,6 +70,11 @@ class MVWebsite extends StatelessWidget {
   }
 }
 
+// ─── AppShell ─────────────────────────────────────────────────────────────────
+// GoRouter rebuilds this on every navigation — keep it stateless.
+// All animation state lives in _PageSwitcherState via the GlobalKey.
+final _pageSwitcherKey = GlobalKey<_PageSwitcherState>();
+
 class AppShell extends StatelessWidget {
   final Widget child;
   final String currentRoute;
@@ -59,87 +83,147 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pageSwitcherKey.currentState?.setPage(child, currentRoute);
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFF0d47a1),
-      body: _AppShellBody(currentRoute: currentRoute, child: child),
+      body: _PageSwitcher(
+        key: _pageSwitcherKey,
+        initialChild: child,
+        initialRoute: currentRoute,
+      ),
     );
   }
 }
 
-class _AppShellBody extends StatefulWidget {
-  final Widget child;
-  final String currentRoute;
+// ─── _PageSwitcher ────────────────────────────────────────────────────────────
+class _PageSwitcher extends StatefulWidget {
+  final Widget initialChild;
+  final String initialRoute;
 
-  const _AppShellBody({required this.child, required this.currentRoute});
+  const _PageSwitcher({
+    super.key,
+    required this.initialChild,
+    required this.initialRoute,
+  });
 
   @override
-  State<_AppShellBody> createState() => _AppShellBodyState();
+  State<_PageSwitcher> createState() => _PageSwitcherState();
 }
 
-class _AppShellBodyState extends State<_AppShellBody> {
-  // Use a fixed base height for the header or measure only the "closed" state
-  // Typically 64-80px is standard for navbars. 
-  final double _baseNavHeight = 70; 
-  final ScrollController _scrollController = ScrollController();
+class _PageSwitcherState extends State<_PageSwitcher>
+    with SingleTickerProviderStateMixin {
+  static const double _navHeight = 70;
+  // How long the page fades in/out
+  static const Duration _fadeDuration = Duration(milliseconds: 250);
+
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  final ScrollController _scroll = ScrollController();
+
+  late Widget _visibleChild;
+  late String _visibleRoute;
+  Widget? _pendingChild;
+  String? _pendingRoute;
+  bool _busy = false;
+
+  // Sections listen to this — false means "hold", true means "go"
+  final ValueNotifier<bool> _sectionsReady = ValueNotifier(true);
 
   @override
-  void didUpdateWidget(_AppShellBody oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // FIX: Reset scroll position to top whenever the route changes
-    if (oldWidget.currentRoute != widget.currentRoute) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+  void initState() {
+    super.initState();
+    _visibleChild = widget.initialChild;
+    _visibleRoute = widget.initialRoute;
+
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: _fadeDuration,
+      value: 1.0,
+    );
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  void setPage(Widget child, String route) {
+    if (route == _visibleRoute) return;
+
+    if (_busy) {
+      _pendingChild = child;
+      _pendingRoute = route;
+      return;
     }
+
+    _runTransition(child, route);
+  }
+
+  void _runTransition(Widget child, String route) {
+    _busy = true;
+    _pendingChild = null;
+    _pendingRoute = null;
+
+    // Tell sections to hold — new page is about to mount but shouldn't animate yet
+    _sectionsReady.value = false;
+
+    // 1. Fade OUT old page
+    _ctrl.reverse().then((_) {
+      if (!mounted) return;
+
+      // 2. Swap page content (still invisible), reset scroll
+      setState(() {
+        _visibleChild = child;
+        _visibleRoute = route;
+      });
+      _scroll.jumpTo(0);
+
+      // 3. Fade IN new page
+      _ctrl.forward().then((_) {
+        if (!mounted) return;
+
+        // 4. Page is fully visible — release sections to stagger in
+        _sectionsReady.value = true;
+        _busy = false;
+
+        if (_pendingChild != null) {
+          _runTransition(_pendingChild!, _pendingRoute!);
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _scroll.dispose();
+    _sectionsReady.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Page content
         Positioned.fill(
-          // Use a fixed top value so the content doesn't "jump" when menu opens
-          top: _baseNavHeight, 
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            // Use layoutBuilder to ensure old pages are properly disposed
-            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-              return Stack(
-                children: <Widget>[
-                  ...previousChildren,
-                  if (currentChild != null) currentChild,
-                ],
-              );
-            },
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            child: KeyedSubtree(
-              // We add 'page_' prefix to ensure this key is distinct from other keys
-              key: ValueKey('page_${widget.currentRoute}'),
+          top: _navHeight,
+          child: FadeTransition(
+            opacity: _fade,
+            // Provide the readiness signal to all descendant FadeInSections
+            child: PageTransitionNotifier(
+              notifier: _sectionsReady,
               child: SingleChildScrollView(
-                controller: _scrollController,
-                child: widget.child,
+                key: ValueKey(_visibleRoute),
+                controller: _scroll,
+                child: _visibleChild,
               ),
             ),
           ),
         ),
-        // Nav bar sits on top and its menu will OVERLAY the content
         Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
+          top: 0, left: 0, right: 0,
           child: CustomNavigationBar(
-            currentRoute: widget.currentRoute,
-            onNavigate: (route) {
-              context.go(route);
-            },
+            currentRoute: _visibleRoute,
+            onNavigate: (route) => context.go(route),
           ),
         ),
       ],

@@ -11,20 +11,17 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: ScrollController(),
-      child: Column(
-        children: [
-          FadeInSection(child: _buildHeroSection(context)),
-          FadeInSection(child: _buildStorySection(context)),
-          FadeInSection(child: _buildMissionSection(context)),
-          FadeInSection(child: _buildValuesSection(context)),
-          FadeInSection(child: _buildTeamSection(context)),
-          FadeInSection(child: _buildTimelineSection(context)),
-          FadeInSection(child: _buildCTASection(context)),
-          const AppFooter(),
-        ],
-      ),
+    return Column(
+      children: [
+        FadeInSection(child: _buildHeroSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 100), child: _buildStorySection(context)),
+        FadeInSection(delay: Duration(milliseconds: 200), child: _buildMissionSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 300), child: _buildValuesSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 400), child: _buildTeamSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 500), child: _buildTimelineSection(context)),
+        FadeInSection(delay: Duration(milliseconds: 600), child: _buildCTASection(context)),
+        const AppFooter(),
+      ],
     );
   }
 

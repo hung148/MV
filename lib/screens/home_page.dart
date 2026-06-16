@@ -10,20 +10,17 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: ScrollController(),
-      child: Column(
-        children: [
-          _buildHeroSection(context),
-          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildFeaturesSection(context)),
-          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildServicesSection(context)),
-          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildCapabilitiesSection(context)),
-          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildWhyChooseUsSection(context)),
-          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildStatsSection(context)),
-          FadeInSection(delay: const Duration(milliseconds: 100), child: _buildCTASection(context)),
-          const AppFooter(),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildHeroSection(context),
+        FadeInSection(delay: const Duration(milliseconds: 100), child: _buildFeaturesSection(context)),
+        FadeInSection(delay: const Duration(milliseconds: 200), child: _buildServicesSection(context)),
+        FadeInSection(delay: const Duration(milliseconds: 300), child: _buildCapabilitiesSection(context)),
+        FadeInSection(delay: const Duration(milliseconds: 400), child: _buildWhyChooseUsSection(context)),
+        FadeInSection(delay: const Duration(milliseconds: 500), child: _buildStatsSection(context)),
+        FadeInSection(delay: const Duration(milliseconds: 600), child: _buildCTASection(context)),
+        const AppFooter(),
+      ],
     );
   }
 
