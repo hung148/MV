@@ -38,6 +38,147 @@ class PageTransitionNotifier extends InheritedNotifier<ValueNotifier<bool>> {
   }
 }
 
+// ─── Fade page wrapper ──────────────────────────────────────────────────────
+// Wraps the page content, drives PageTransitionNotifier off the route
+// transition's own AnimationController (provided by GoRouter/Navigator),
+// instead of a separate hand-rolled controller. This is what makes the
+// fade reliable — GoRouter guarantees this animation always runs to
+// completion for every push/replace.
+class _FadeRouteContent extends StatefulWidget {
+  final Widget child;
+  // Drives this page's own fade-IN (second half of the shared timeline).
+  final Animation<double> inOpacity;
+  // Drives this page's fade-OUT while the NEXT page is pushed on top of it
+  // (first half of the shared timeline, from the next page's perspective).
+  final Animation<double> outOpacity;
+
+  const _FadeRouteContent({
+    required this.child,
+    required this.inOpacity,
+    required this.outOpacity,
+  });
+
+  @override
+  State<_FadeRouteContent> createState() => _FadeRouteContentState();
+}
+
+class _FadeRouteContentState extends State<_FadeRouteContent> {
+  final ValueNotifier<bool> _sectionsReady = ValueNotifier(false);
+  final ScrollController _scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Reset scroll position for the new page.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    });
+    widget.inOpacity.addStatusListener(_onStatusChanged);
+    // If we mounted already-completed (e.g. first route), fire after a small
+    // buffer so section animations never overlap the tail of the page fade.
+    if (widget.inOpacity.status == AnimationStatus.completed) {
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) _sectionsReady.value = true;
+      });
+    }
+  }
+
+  void _onStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      // Buffer prevents section anims from firing exactly as the page fade ends,
+      // which causes a visible content pop / stutter on Flutter web.
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) _sectionsReady.value = true;
+      });
+    } else if (status == AnimationStatus.forward) {
+      _sectionsReady.value = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.inOpacity.removeStatusListener(_onStatusChanged);
+    _sectionsReady.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Two stacked FadeTransitions instead of a manual Opacity widget.
+    // FadeTransition uses RenderAnimatedOpacity under the hood, which Flutter
+    // can composite as a cached layer rather than repainting the whole
+    // subtree's raster content every animation tick — this is what removes
+    // the stutter that a plain Opacity (driven via AnimatedBuilder) caused
+    // on heavier pages.
+    //
+    // outOpacity drives this page fading OUT (1→0) when a new page is being
+    // pushed on top of it. inOpacity drives this page fading IN (0→1) when
+    // it is the incoming page. Exactly one of the two is ever animating at
+    // a time (see _fadePage below), so nesting them is equivalent to
+    // multiplying — but each gets its own compositing layer instead of
+    // forcing a shared repaint path.
+    return FadeTransition(
+      opacity: widget.outOpacity,
+      child: FadeTransition(
+        opacity: widget.inOpacity,
+        child: PageTransitionNotifier(
+          notifier: _sectionsReady,
+          child: SingleChildScrollView(
+            controller: _scroll,
+            child: RepaintBoundary(child: widget.child),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Builds a [CustomTransitionPage] that fades [child] in/out sequentially:
+/// the outgoing page fully disappears (first half of the transition) before
+/// the incoming page fades in (second half). Both halves run off the same
+/// underlying animation clock via [Interval], so they can never drift out
+/// of sync with each other.
+CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    transitionDuration: const Duration(milliseconds: 400),
+    reverseTransitionDuration: const Duration(milliseconds: 400),
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, pageChild) {
+      // First half of this page's own forward-push: fade IN, from 0.5→1.0
+      // of the shared clock so it starts only after the previous page (whose
+      // outOpacity is driven by this same `animation` instance, used as ITS
+      // secondaryAnimation) has finished disappearing.
+      //
+      // Curves.linear here (not easeOut) — easing curves that start with a
+      // steep slope (easeOut ramps fast off zero) make the very first
+      // frames of the fade-in jump in opacity quickly, which can make a
+      // hitch in that first frame more visually obvious. Linear keeps the
+      // opening of the fade gentle.
+      final fadeIn = CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+      );
+      // When this page is the OLD one and a new page is pushed on top of it,
+      // `secondaryAnimation` runs 0.0→1.0. Fade OUT during the first half
+      // only, then hold fully transparent for the second half while the
+      // new page fades in on top.
+      final fadeOut = CurvedAnimation(
+        parent: secondaryAnimation,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      );
+      final outOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(fadeOut);
+
+      return _FadeRouteContent(
+        inOpacity: fadeIn,
+        outOpacity: outOpacity,
+        child: pageChild,
+      );
+    },
+  );
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
   initialLocation: '/',
@@ -47,11 +188,26 @@ final _router = GoRouter(
         return AppShell(currentRoute: state.uri.path, child: child);
       },
       routes: [
-        GoRoute(path: '/',             builder: (_, __) => const HomePageContent()),
-        GoRoute(path: '/services',     builder: (_, __) => const ServicesPage()),
-        GoRoute(path: '/capabilities', builder: (_, __) => const CapabilitiesPage()),
-        GoRoute(path: '/about',        builder: (_, __) => const AboutPage()),
-        GoRoute(path: '/gallery',      builder: (_, __) => const GalleryPage()),
+        GoRoute(
+          path: '/',
+          pageBuilder: (context, state) => _fadePage(state, const HomePageContent()),
+        ),
+        GoRoute(
+          path: '/services',
+          pageBuilder: (context, state) => _fadePage(state, const ServicesPage()),
+        ),
+        GoRoute(
+          path: '/capabilities',
+          pageBuilder: (context, state) => _fadePage(state, const CapabilitiesPage()),
+        ),
+        GoRoute(
+          path: '/about',
+          pageBuilder: (context, state) => _fadePage(state, const AboutPage()),
+        ),
+        GoRoute(
+          path: '/gallery',
+          pageBuilder: (context, state) => _fadePage(state, const GalleryPage()),
+        ),
       ],
     ),
   ],
@@ -71,162 +227,36 @@ class MVWebsite extends StatelessWidget {
 }
 
 // ─── AppShell ─────────────────────────────────────────────────────────────────
-// GoRouter rebuilds this on every navigation — keep it stateless.
-// All animation state lives in _PageSwitcherState via the GlobalKey.
-final _pageSwitcherKey = GlobalKey<_PageSwitcherState>();
-
+// Persistent nav bar + page body. GoRouter now owns the page transition
+// animation (via CustomTransitionPage above), so this widget stays simple:
+// no GlobalKey, no manual AnimationController, no post-frame callback races.
 class AppShell extends StatelessWidget {
   final Widget child;
   final String currentRoute;
 
   const AppShell({super.key, required this.child, required this.currentRoute});
 
+  static const double _navHeight = 70;
+
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _pageSwitcherKey.currentState?.setPage(child, currentRoute);
-    });
-
     return Scaffold(
       backgroundColor: const Color(0xFF0d47a1),
-      body: _PageSwitcher(
-        key: _pageSwitcherKey,
-        initialChild: child,
-        initialRoute: currentRoute,
-      ),
-    );
-  }
-}
-
-// ─── _PageSwitcher ────────────────────────────────────────────────────────────
-class _PageSwitcher extends StatefulWidget {
-  final Widget initialChild;
-  final String initialRoute;
-
-  const _PageSwitcher({
-    super.key,
-    required this.initialChild,
-    required this.initialRoute,
-  });
-
-  @override
-  State<_PageSwitcher> createState() => _PageSwitcherState();
-}
-
-class _PageSwitcherState extends State<_PageSwitcher>
-    with SingleTickerProviderStateMixin {
-  static const double _navHeight = 70;
-  // How long the page fades in/out
-  static const Duration _fadeDuration = Duration(milliseconds: 250);
-
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-  final ScrollController _scroll = ScrollController();
-
-  late Widget _visibleChild;
-  late String _visibleRoute;
-  Widget? _pendingChild;
-  String? _pendingRoute;
-  bool _busy = false;
-
-  // Sections listen to this — false means "hold", true means "go"
-  final ValueNotifier<bool> _sectionsReady = ValueNotifier(true);
-
-  @override
-  void initState() {
-    super.initState();
-    _visibleChild = widget.initialChild;
-    _visibleRoute = widget.initialRoute;
-
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: _fadeDuration,
-      value: 1.0,
-    );
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
-  }
-
-  void setPage(Widget child, String route) {
-    if (route == _visibleRoute) return;
-
-    if (_busy) {
-      _pendingChild = child;
-      _pendingRoute = route;
-      return;
-    }
-
-    _runTransition(child, route);
-  }
-
-  void _runTransition(Widget child, String route) {
-    _busy = true;
-    _pendingChild = null;
-    _pendingRoute = null;
-
-    // Tell sections to hold — new page is about to mount but shouldn't animate yet
-    _sectionsReady.value = false;
-
-    // 1. Fade OUT old page
-    _ctrl.reverse().then((_) {
-      if (!mounted) return;
-
-      // 2. Swap page content (still invisible), reset scroll
-      setState(() {
-        _visibleChild = child;
-        _visibleRoute = route;
-      });
-      _scroll.jumpTo(0);
-
-      // 3. Fade IN new page
-      _ctrl.forward().then((_) {
-        if (!mounted) return;
-
-        // 4. Page is fully visible — release sections to stagger in
-        _sectionsReady.value = true;
-        _busy = false;
-
-        if (_pendingChild != null) {
-          _runTransition(_pendingChild!, _pendingRoute!);
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    _scroll.dispose();
-    _sectionsReady.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          top: _navHeight,
-          child: FadeTransition(
-            opacity: _fade,
-            // Provide the readiness signal to all descendant FadeInSections
-            child: PageTransitionNotifier(
-              notifier: _sectionsReady,
-              child: SingleChildScrollView(
-                key: ValueKey(_visibleRoute),
-                controller: _scroll,
-                child: _visibleChild,
-              ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            top: _navHeight,
+            child: child,
+          ),
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: CustomNavigationBar(
+              currentRoute: currentRoute,
+              onNavigate: (route) => context.go(route),
             ),
           ),
-        ),
-        Positioned(
-          top: 0, left: 0, right: 0,
-          child: CustomNavigationBar(
-            currentRoute: _visibleRoute,
-            onNavigate: (route) => context.go(route),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

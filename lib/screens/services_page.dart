@@ -232,13 +232,10 @@ class ServicesPage extends StatelessWidget {
             children: [
               Text('Industries We Serve', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
-              GridView.count(
-                crossAxisCount: r.industryGridColumns,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: r.cardSpacing,
-                mainAxisSpacing: r.cardSpacing,
-                childAspectRatio: r.industryGridAspectRatio,
+              Wrap(
+                spacing: r.cardSpacing,
+                runSpacing: r.cardSpacing,
+                alignment: WrapAlignment.center,
                 children: [
                   _buildIndustryCard(r, Icons.local_hospital, 'Medical'),
                   _buildIndustryCard(r, Icons.flight, 'Aerospace'),
@@ -259,6 +256,7 @@ class ServicesPage extends StatelessWidget {
 
   Widget _buildIndustryCard(Responsive r, IconData icon, String industry) {
     return Container(
+      width: r.industryCardWidth,
       padding: EdgeInsets.all(r.spacingM),
       decoration: BoxDecoration(
         color: const Color(0xFFf5f5f5),
@@ -266,11 +264,12 @@ class ServicesPage extends StatelessWidget {
         border: Border.all(color: const Color(0xFFe0e0e0)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: r.iconLarge, color: const Color(0xFF0d47a1)),
           SizedBox(height: r.spacingS),
-          Text(industry, style: TextStyle(fontSize: r.body, fontWeight: FontWeight.w600, color: const Color(0xFF1a1a1a))),
+          Text(industry, style: TextStyle(fontSize: r.body, fontWeight: FontWeight.w600, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/styles.dart';
 import 'package:mv/widgets/quote_form.dart';
@@ -22,6 +23,28 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
   bool _isMobileMenuOpen = false;
   late AnimationController _controller; // Controller for the menu icon
 
+  // Store keys to measure the position of each nav item
+  final Map<String, GlobalKey> _linkKeys = {
+    '/': GlobalKey(),
+    '/services': GlobalKey(),
+    '/capabilities': GlobalKey(),
+    '/about': GlobalKey(),
+    '/gallery': GlobalKey(),
+  };
+
+  // Desktop properties
+  double _indicatorLeft = 0;
+  double _indicatorWidth = 0;
+
+  // Mobile properties
+  double _mobileIndicatorTop = 0;
+  double _mobileIndicatorHeight = 0;
+
+  bool _isFirstLoad = true;
+
+  // 1. Add a variable to track the last known width to detect layout flips
+  double? _lastWidth;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +52,12 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    // initialize keys for routes you use
+    for (final r in ['/', '/services', '/capabilities', '/about', '/gallery']) {
+      _linkKeys[r] = GlobalKey();
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
   }
 
   @override
@@ -37,13 +66,76 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant CustomNavigationBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      // When switching pages, we want the animation
+      _isFirstLoad = false; 
+      WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
+    }
+  }
+
+   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    final currentWidth = MediaQuery.of(context).size.width;
+    
+    // Check if we crossed the desktop/mobile breakpoint (1024)
+    if (_lastWidth != null) {
+      bool wasDesktop = _lastWidth! >= 1024;
+      bool isDesktop = currentWidth >= 1024;
+      
+      if (wasDesktop != isDesktop) {
+        // If we switched layouts, treat it as a "first load" 
+        // so the bar snaps into place instead of sliding from a weird position
+        _isFirstLoad = true;
+      }
+    }
+    _lastWidth = currentWidth;
+
+    // Trigger re-measurement after the layout has finished changing
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
+  }
+
+  // 2. Enhance _updateIndicator to be more resilient
+  void _updateIndicator() {
+    if (!mounted) return;
+
+    final key = _linkKeys[widget.currentRoute];
+    if (key == null || key.currentContext == null) {
+      // If we are on mobile and the menu isn't open, we can't measure
+      if (!_isMobileMenuOpen && MediaQuery.of(context).size.width < 1024) return;
+      
+      Future.delayed(const Duration(milliseconds: 50), _updateIndicator);
+      return;
+    }
+
+    final RenderObject? renderObject = key.currentContext!.findRenderObject();
+    final RenderStack? stackBox = key.currentContext!.findAncestorRenderObjectOfType<RenderStack>();
+
+    if (renderObject is RenderBox && stackBox != null) {
+      final position = renderObject.localToGlobal(Offset.zero, ancestor: stackBox);
+      
+      setState(() {
+        _indicatorLeft = position.dx;
+        _indicatorWidth = renderObject.size.width;
+        _mobileIndicatorTop = position.dy;
+        _mobileIndicatorHeight = renderObject.size.height;
+      });
+    }
+  }
+
   void _toggleMobileMenu() {
     setState(() {
       _isMobileMenuOpen = !_isMobileMenuOpen;
       if (_isMobileMenuOpen) {
-        _controller.forward(); // Plays menu -> close
+        _controller.forward();
+        // Give the menu a moment to build before calculating position
+        WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
       } else {
-        _controller.reverse(); // Plays close -> menu
+        _controller.reverse();
       }
     });
   }
@@ -71,7 +163,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
 
   Widget _buildDesktopNav() {
     return Container(
-      height: 80, // Fixed height to match AppShell padding
+      height: 70, // Fixed height to match AppShell padding
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
@@ -82,17 +174,53 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _NavBarLink(title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _navigateTo),
-                  _NavBarLink(title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _navigateTo),
-                  _NavBarLink(title: 'Capabilities', route: '/capabilities', currentRoute: widget.currentRoute, onTap: _navigateTo),
-                  _NavBarLink(title: 'About Us', route: '/about', currentRoute: widget.currentRoute, onTap: _navigateTo),
-                  _NavBarLink(title: 'Gallery', route: '/gallery', currentRoute: widget.currentRoute, onTap: _navigateTo),
-                  const SizedBox(width: 24),
-                  _buildContactButton(),
-                ],
+              child: SizedBox(
+                width: 750, 
+                child: Stack(
+                  alignment: Alignment.bottomLeft,
+                  children: [
+                    // 1. Navigation Links 
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _NavBarLink(key: _linkKeys['/'], title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                        _NavBarLink(key: _linkKeys['/services'], title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                        _NavBarLink(key: _linkKeys['/capabilities'], title: 'Capabilities', route: '/capabilities', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                        _NavBarLink(key: _linkKeys['/about'], title: 'About Us', route: '/about', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                        _NavBarLink(key: _linkKeys['/gallery'], title: 'Gallery', route: '/gallery', currentRoute: widget.currentRoute, onTap: _navigateTo),
+                        const SizedBox(width: 24),
+                        _buildContactButton(),
+                      ],
+                    ),
+                    
+                    // 2. Sliding Indicator
+                    AnimatedPositioned(
+                      // If width is 0, keep it invisible. 
+                      // If it's the first load, use 0 duration to snap into place.
+                      duration: _indicatorWidth == 0 || _isFirstLoad 
+                          ? Duration.zero 
+                          : const Duration(milliseconds: 350),
+                      curve: Curves.easeOutCubic,
+                      left: _indicatorLeft,
+                      bottom: 0, // Adjusted for typical text baseline
+                      child: Opacity(
+                        // Hide the bar until it has a measured width
+                        opacity: _indicatorWidth == 0 ? 0 : 1,
+                        child: AnimatedContainer(
+                          duration: _indicatorWidth == 0 || _isFirstLoad 
+                              ? Duration.zero 
+                              : const Duration(milliseconds: 350),
+                          curve: Curves.easeOutCubic,
+                          width: _indicatorWidth,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: ShopStyles.primaryBlue,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -134,16 +262,34 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
               ? Container(
                   width: double.infinity,
                   color: const Color(0xFF2a2a2a),
-                  child: Column(
+                  child: Stack( // Added Stack for vertical indicator
                     children: [
-                      _MobileNavBarLink(title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
-                      _MobileNavBarLink(title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
-                      _MobileNavBarLink(title: 'Capabilities', route: '/capabilities', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
-                      _MobileNavBarLink(title: 'About Us', route: '/about', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
-                      _MobileNavBarLink(title: 'Gallery', route: '/gallery', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: SizedBox(width: double.infinity, child: _buildContactButton()),
+                      // MOBILE VERTICAL INDICATOR
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeOutCubic,
+                        top: _mobileIndicatorTop,
+                        left: 0,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeOutCubic,
+                          width: 4,
+                          height: _mobileIndicatorHeight,
+                          color: ShopStyles.primaryBlue,
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          _MobileNavBarLink(key: _linkKeys['/'], title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                          _MobileNavBarLink(key: _linkKeys['/services'], title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                          _MobileNavBarLink(key: _linkKeys['/capabilities'], title: 'Capabilities', route: '/capabilities', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                          _MobileNavBarLink(key: _linkKeys['/about'], title: 'About Us', route: '/about', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                          _MobileNavBarLink(key: _linkKeys['/gallery'], title: 'Gallery', route: '/gallery', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
+                          Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: SizedBox(width: double.infinity, child: _buildContactButton()),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -253,7 +399,7 @@ class _NavBarLink extends StatefulWidget {
   final String currentRoute;
   final Function(String) onTap;
 
-  const _NavBarLink({required this.title, required this.route, required this.currentRoute, required this.onTap});
+  const _NavBarLink({super.key, required this.title, required this.route, required this.currentRoute, required this.onTap});
 
   @override
   State<_NavBarLink> createState() => _NavBarLinkState();
@@ -261,6 +407,7 @@ class _NavBarLink extends StatefulWidget {
 
 class _NavBarLinkState extends State<_NavBarLink> {
   bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +415,15 @@ class _NavBarLinkState extends State<_NavBarLink> {
 
     return InkWell(
       onTap: () => widget.onTap(widget.route),
+      // Triggered when finger/mouse touches down
+      onTapDown: (_) => setState(() => _isPressed = true),
+      // Triggered when finger/mouse lifts up
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap(widget.route);
+      },
+      // Triggered if user slides finger away without lifting
+      onTapCancel: () => setState(() => _isPressed = false),
       onHover: (hovering) => setState(() => _isHovered = hovering),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
       child: AnimatedContainer(
@@ -276,18 +432,25 @@ class _NavBarLinkState extends State<_NavBarLink> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isActive ? ShopStyles.primaryBlue : (_isHovered ? Colors.white24 : Colors.transparent),
+              color: _isHovered ? Colors.white24 : Colors.transparent,
               width: 3,
             ),
           ),
         ),
-        child: Text(
-          widget.title,
-          style: ShopStyles.navLink.copyWith(
-            color: (isActive || _isHovered) ? Colors.white : ShopStyles.textSecondary,
-            shadows: _isHovered && !isActive
-                ? [Shadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: 8)]
-                : null,
+        child: AnimatedScale(
+          // Shrink to 92% size when pressed
+          scale: _isPressed ? 0.92 : 1.0, 
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut,
+          child: Text(
+            widget.title,
+            style: ShopStyles.navLink.copyWith(
+              color: (isActive || _isHovered) ? Colors.white : ShopStyles.textSecondary,
+              shadows: _isHovered && !isActive
+                  ? [Shadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: 8)]
+                  : null,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ),
       ),
@@ -301,7 +464,7 @@ class _MobileNavBarLink extends StatefulWidget {
   final String currentRoute;
   final Function(String) onTap;
 
-  const _MobileNavBarLink({required this.title, required this.route, required this.currentRoute, required this.onTap});
+  const _MobileNavBarLink({super.key, required this.title, required this.route, required this.currentRoute, required this.onTap});
 
   @override
   State<_MobileNavBarLink> createState() => _MobileNavBarLinkState();
@@ -309,12 +472,19 @@ class _MobileNavBarLink extends StatefulWidget {
 
 class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
   bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     final isActive = widget.currentRoute == widget.route;
 
     return InkWell(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap(widget.route);
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
       onTap: () => widget.onTap(widget.route),
       onHover: (value) => setState(() => _isHovered = value),
       child: AnimatedContainer(
@@ -327,16 +497,23 @@ class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
               : (_isHovered ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
           border: Border(
             left: BorderSide(
-              color: isActive ? ShopStyles.primaryBlue : Colors.transparent,
-              width: 4,
+              color: _isHovered ? Colors.white24 : Colors.transparent,
+              width: 3,
             ),
           ),
         ),
-        child: Text(
-          widget.title,
-          style: ShopStyles.navLink.copyWith(
-            color: (isActive || _isHovered) ? Colors.white : ShopStyles.textSecondary,
-            fontSize: 18,
+        child: AnimatedScale(
+          // Shrink slightly on press
+          scale: _isPressed ? 0.96 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          alignment: Alignment.centerLeft, // Keep text aligned to the left while scaling
+          child: Text(
+            widget.title,
+            style: ShopStyles.navLink.copyWith(
+              color: (isActive || _isHovered) ? Colors.white : ShopStyles.textSecondary,
+              fontSize: 18,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ),
       ),

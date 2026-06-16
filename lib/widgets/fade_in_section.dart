@@ -68,13 +68,19 @@ class _FadeInSectionState extends State<FadeInSection>
   void _onReadyChanged() {
     final ready = _notifier?.value ?? true;
     if (ready) {
-      // Page fade-in just finished — reset and play our animation after delay
+      // Page fade-in just finished — reset and play our animation after delay.
+      // Capture the notifier reference so the delayed callback can verify that
+      // a new transition hasn't started by the time it fires, preventing a
+      // stale forward() from causing a visible content pop mid-transition.
       _controller.reset();
+      final notifierAtSchedule = _notifier;
       Future.delayed(widget.delay, () {
-        if (mounted) _controller.forward();
+        if (!mounted) return;
+        if (notifierAtSchedule?.value != true) return;
+        _controller.forward();
       });
     } else {
-      // New transition starting — snap back to hidden so we're ready
+      // New transition starting — snap back to hidden so we're ready.
       _controller.reset();
     }
   }

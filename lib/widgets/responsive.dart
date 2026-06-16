@@ -153,6 +153,11 @@ class Responsive {
 
   double get industryGridAspectRatio => isMobile ? 1.0 : 1.2;
 
+  /// Industry card width (Wrap-based layout — sizes to content height instead
+  /// of a fixed aspect ratio, so it can never overflow at narrow widths).
+  /// Roughly matches the old 2-up mobile / 4-up desktop column counts.
+  double get industryCardWidth => isMobile ? 150 : isTablet ? 170 : 260;
+
   // ─── Process steps ───────────────────────────────────────────────────────
 
   double get processStepPadding => isMobile ? 16 : isTablet ? 20 : 24;
