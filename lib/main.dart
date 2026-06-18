@@ -248,8 +248,18 @@ class AppShell extends StatelessWidget {
             top: _navHeight,
             child: child,
           ),
+          // bottom: 0 (instead of leaving it unset) stretches this
+          // Positioned box to the full screen height. CustomNavigationBar
+          // itself only ever paints its real content at the top, but the
+          // mobile drawer's invisible "tap outside to close" overlay lives
+          // inside CustomNavigationBar and needs to hit-test across the
+          // *entire* screen while the drawer is open. A Positioned ancestor
+          // clips hit-testing to its own laid-out bounds regardless of any
+          // Clip.none used further down the tree for painting overflow, so
+          // without bottom: 0 here, taps below the drawer's natural height
+          // never reached the overlay's GestureDetector.
           Positioned(
-            top: 0, left: 0, right: 0,
+            top: 0, left: 0, right: 0, bottom: 0,
             child: CustomNavigationBar(
               currentRoute: currentRoute,
               onNavigate: (route) => context.go(route),

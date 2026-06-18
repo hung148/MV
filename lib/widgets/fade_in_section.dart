@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:mv/main.dart'; // for PageTransitionNotifier
 
 /// Wraps any widget so it fades + slides up after the page transition completes.
@@ -104,31 +105,88 @@ class _FadeInSectionState extends State<FadeInSection>
 
 /// Animates a number counting up from 0 to [end].
 /// Use inside the stats section.
+///
+/// By default, the count-up replays every time the widget scrolls into
+/// view (including scrolling back up past it) — same behavior as
+/// ScrollReveal's replayOnScroll. Pass [replayOnScroll]: false to only
+/// ever count up once, the first time it becomes visible.
 class AnimatedCounter extends StatefulWidget {
   final String end; // e.g. "24hr", "2", "1,000+"
   final TextStyle style;
+  final double visibilityThreshold;
+  final bool replayOnScroll;
 
-  const AnimatedCounter({super.key, required this.end, required this.style});
+  const AnimatedCounter({
+    super.key,
+    required this.end,
+    required this.style,
+    this.visibilityThreshold = 0.3,
+    this.replayOnScroll = true,
+  });
 
   @override
   State<AnimatedCounter> createState() => _AnimatedCounterState();
 }
 
 class _AnimatedCounterState extends State<AnimatedCounter>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
+  late final Key _visibilityKey;
+
+  bool _hasAnimated = false;
+  bool _disposed = false;
 
   @override
   void initState() {
     super.initState();
+    _visibilityKey = UniqueKey();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    )..forward();
+    );
+    // VisibilityDetector doesn't recheck on window/browser resize on its
+    // own — only on scroll or its own periodic timer — so without this a
+    // counter that lands in/out of view purely from a resize can get stuck
+    // until the next scroll. Force an immediate recheck after each resize.
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_disposed) return;
+      // notifyNow() is global — it synchronously fires onVisibilityChanged
+      // for every VisibilityDetector currently registered in the app, not
+      // just this one. If a route change disposes other counters in the
+      // same frame, their own _onVisibilityChanged still guards itself
+      // with _disposed below.
+      VisibilityDetectorController.instance.notifyNow();
+    });
+  }
+
+  void _onVisibilityChanged(VisibilityInfo info) {
+    // notifyNow() can invoke this after the widget is already disposed
+    // (see didChangeMetrics above) — bail out before touching _controller.
+    if (_disposed) return;
+
+    final isVisible = info.visibleFraction >= widget.visibilityThreshold;
+
+    if (isVisible) {
+      if (_hasAnimated) return; // already counted up / counting — leave it
+      _hasAnimated = true;
+      _controller.forward(from: 0);
+    } else {
+      if (!widget.replayOnScroll) return; // one-shot mode never resets
+      if (!_hasAnimated) return; // never started, nothing to reset
+      _hasAnimated = false;
+      _controller.value = 0; // snap back to 0, ready to recount next time
+    }
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -142,15 +200,19 @@ class _AnimatedCounterState extends State<AnimatedCounter>
     final suffix = match.group(2) ?? '';
     final num = double.tryParse(numStr) ?? 0;
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final value = (num * _controller.value).round();
-        final display = value >= 1000
-            ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
-            : value.toString();
-        return Text('$display$suffix', style: widget.style);
-      },
+    return VisibilityDetector(
+      key: _visibilityKey,
+      onVisibilityChanged: _onVisibilityChanged,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final value = (num * _controller.value).round();
+          final display = value >= 1000
+              ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
+              : value.toString();
+          return Text('$display$suffix', style: widget.style);
+        },
+      ),
     );
   }
 }

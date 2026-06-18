@@ -45,6 +45,13 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
   // 1. Add a variable to track the last known width to detect layout flips
   double? _lastWidth;
 
+  // Key to measure the drawer's current rendered height, so the
+  // "tap outside to close" overlay can start right below the drawer
+  // instead of covering the whole screen (which was swallowing taps on
+  // the links themselves, since the overlay painted on top of them).
+  final GlobalKey _drawerKey = GlobalKey();
+  double _drawerHeight = 0;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +59,11 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    // Re-measure the drawer's height every frame while it's animating
+    // open/closed, so the tap-outside overlay (which starts below the
+    // drawer) tracks the drawer's growing/shrinking edge instead of
+    // snapping to a stale height.
+    _controller.addListener(_updateDrawerHeight);
     // initialize keys for routes you use
     for (final r in ['/', '/services', '/capabilities', '/about', '/gallery']) {
       _linkKeys[r] = GlobalKey();
@@ -62,6 +74,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
 
   @override
   void dispose() {
+    _controller.removeListener(_updateDrawerHeight);
     _controller.dispose();
     super.dispose();
   }
@@ -125,17 +138,33 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
         _mobileIndicatorHeight = renderObject.size.height;
       });
     }
+
+    _updateDrawerHeight();
+  }
+
+  void _updateDrawerHeight() {
+    if (!mounted) return;
+    final renderObject = _drawerKey.currentContext?.findRenderObject();
+    if (renderObject is RenderBox && renderObject.hasSize) {
+      final height = renderObject.size.height;
+      if (height != _drawerHeight) {
+        setState(() => _drawerHeight = height);
+      }
+    }
   }
 
   void _toggleMobileMenu() {
+    if (!mounted) return;
     setState(() {
       _isMobileMenuOpen = !_isMobileMenuOpen;
       if (_isMobileMenuOpen) {
         _controller.forward();
-        // Give the menu a moment to build before calculating position
+        // Wait for the drawer to exist before measuring
         WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
       } else {
         _controller.reverse();
+        // We don't reset _mobileIndicatorHeight to 0 immediately 
+        // so it stays visible while the drawer is sliding up.
       }
     });
   }
@@ -144,8 +173,16 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
+
+      child: isDesktop ? _buildDesktopNav() : _buildMobileNav(),
+    );
+  }
+
+  Widget _buildDesktopNav() {
+    return Container(
+      height: 70, // Fixed height to match AppShell padding
       decoration: BoxDecoration(
         color: const Color(0xFF1a1a1a),
         boxShadow: [
@@ -156,14 +193,6 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
           ),
         ],
       ),
-
-      child: isDesktop ? _buildDesktopNav() : _buildMobileNav(),
-    );
-  }
-
-  Widget _buildDesktopNav() {
-    return Container(
-      height: 70, // Fixed height to match AppShell padding
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
@@ -230,41 +259,66 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
   }
 
   Widget _buildMobileNav() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      key: const ValueKey('mobile'), // Key needed for AnimatedSwitcher
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        Container(
-          height: 70, 
-          padding: const EdgeInsets.only(right: 16, top: 0, bottom: 0, left: 0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildLogo(),
-              IconButton(
-                // 2. Use AnimatedIcon for the button switch
-                icon: AnimatedIcon(
-                  icon: AnimatedIcons.menu_close,
-                  progress: _controller,
-                  color: Colors.white,
-                  size: 28,
-                ),
-                onPressed: _toggleMobileMenu,
+        // LAYER 1: NAV BAR + DRAWER
+        // This must come BEFORE the overlay in the children list so the
+        // overlay paints (and hit-tests) on top of it. Stack hit-testing
+        // walks children back-to-front, so whichever child is listed last
+        // gets first crack at a tap. With the overlay listed first (as it
+        // used to be), this Column painted over it and silently swallowed
+        // every "tap outside to close" gesture.
+        Column(
+          key: _drawerKey,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // TOP BAR
+            Container(
+              height: 70,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1a1a1a),
+                boxShadow: [
+                  BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+                ],
               ),
-            ],
-          ),
-        ),
-        // 3. Use AnimatedSize for smooth expansion of the menu
-        AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          child: _isMobileMenuOpen
-              ? Container(
+              padding: const EdgeInsets.only(right: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildLogo(),
+                  IconButton(
+                    icon: AnimatedIcon(
+                      icon: AnimatedIcons.menu_close,
+                      progress: _controller,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: _toggleMobileMenu,
+                  ),
+                ],
+              ),
+            ),
+
+            // ANIMATED DRAWER
+            // SizeTransition is driven by _controller (the same one used for the
+            // menu icon), so open AND close both animate against a real 0->1
+            // value. AnimatedSize only animates when it can measure a child's
+            // natural size on both ends of the transition; toggling height
+            // between null and 0 collapses the child to 0 in the same frame,
+            // so there's nothing left for AnimatedSize to interpolate on close.
+            ClipRect(
+              child: SizeTransition(
+                sizeFactor: _controller,
+                axisAlignment: -1.0, // anchor to top, like Alignment.topCenter
+                child: Container(
                   width: double.infinity,
-                  color: const Color(0xFF2a2a2a),
-                  child: Stack( // Added Stack for vertical indicator
+                  decoration: const BoxDecoration(color: Color(0xFF2a2a2a)),
+                  child: Stack( 
                     children: [
-                      // MOBILE VERTICAL INDICATOR
+                      // Vertical Indicator
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 350),
                         curve: Curves.easeOutCubic,
@@ -278,7 +332,9 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
                           color: ShopStyles.primaryBlue,
                         ),
                       ),
+                      // Links Column
                       Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           _MobileNavBarLink(key: _linkKeys['/'], title: 'Home', route: '/', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
                           _MobileNavBarLink(key: _linkKeys['/services'], title: 'Services', route: '/services', currentRoute: widget.currentRoute, onTap: _handleMobileTap),
@@ -293,16 +349,40 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
                       ),
                     ],
                   ),
-                )
-              : const SizedBox(width: double.infinity),
+                ),
+              ),
+            ),
+          ],
         ),
+
+        // LAYER 2: INVISIBLE OVERLAY (must be listed AFTER the drawer Column above)
+        // Starts at _drawerHeight (top bar + current drawer extent) rather
+        // than top: 0 — covering from the very top swallowed every tap on
+        // the drawer's own links before they could reach the InkWells
+        // underneath, since Stack hit-testing gives the last/topmost child
+        // first crack at a tap and this overlay painted above everything.
+        // That's what made link taps look like they only closed the menu.
+        if (_isMobileMenuOpen)
+          Positioned(
+            top: _drawerHeight,
+            left: 0,
+            right: 0,
+            height: screenHeight - _drawerHeight,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _toggleMobileMenu,
+              child: Container(color: Colors.transparent),
+            ),
+          ),
       ],
     );
   }
 
   void _handleMobileTap(String route) {
+    // Menu intentionally stays open here — tapping a link should switch
+    // the page underneath while the drawer stays open on top. Use the
+    // hamburger/X icon or tap outside to close it (_toggleMobileMenu).
     _navigateTo(route);
-     _toggleMobileMenu(); // Close the menu smoothly
   }
 
   Widget _buildLogo() {
@@ -374,21 +454,19 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
     );
   }
 
-  // Delegates to AppShell's _navigateTo
+  // Delegates to AppShell's onNavigate (context.go).
   void _navigateTo(String route) {
-    // 1. Close any open Dialogs using the root navigator
-    // This is the most common cause of PopScope GlobalKey crashes on Web
-    final nav = Navigator.of(context, rootNavigator: true);
-    if (nav.canPop()) {
-      nav.pop();
-    }
-
-    // 2. Close mobile menu if it's open
-    if (_isMobileMenuOpen) {
-      _toggleMobileMenu();
-    }
-
-    // 3. Navigate
+    // IMPORTANT: don't call Navigator.of(context).pop() / canPop() here.
+    // Inside a ShellRoute, the nearest Navigator found by walking up from
+    // this context IS the GoRouter navigator that owns the page stack —
+    // there's no separate Navigator above it to "close a dialog" on.
+    // canPop() was returning true simply because GoRouter had back
+    // history, so pop() was popping the route stack itself, racing with /
+    // undoing the context.go(route) call below. That's what made link
+    // taps look like "menu closes, page doesn't change" — the pop and the
+    // go() were fighting over the same stack. If a quote dialog needs to
+    // be dismissed before navigating, that should happen via the dialog's
+    // own onPressed/close handler, not from here.
     widget.onNavigate(route);
   }
 }
@@ -414,7 +492,12 @@ class _NavBarLinkState extends State<_NavBarLink> {
     final isActive = widget.currentRoute == widget.route;
 
     return InkWell(
-      onTap: () => widget.onTap(widget.route),
+      // onTapUp (below) already calls widget.onTap, so a separate onTap
+      // handler here would fire the same callback twice per click — Flutter
+      // dispatches onTapDown -> onTapUp -> onTap for a single tap gesture,
+      // not just one of them. That meant every click called _navigateTo
+      // (and therefore context.go) twice in a row, which can race with
+      // GoRouter's own transition handling.
       // Triggered when finger/mouse touches down
       onTapDown: (_) => setState(() => _isPressed = true),
       // Triggered when finger/mouse lifts up
@@ -480,12 +563,23 @@ class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
 
     return InkWell(
       onTapDown: (_) => setState(() => _isPressed = true),
+      // onTapUp is the single source of truth for the tap action — it
+      // already calls widget.onTap. A separate onTap handler used to sit
+      // alongside this and fire the exact same callback again for the same
+      // gesture (Flutter dispatches onTapDown -> onTapUp -> onTap in that
+      // order for one tap, not just one of them), so every tap called
+      // _handleMobileTap -> _navigateTo -> context.go(route) TWICE in a
+      // row. The first call closed the drawer and kicked off navigation;
+      // the second call landed milliseconds later while GoRouter was still
+      // processing the first transition, and re-triggering go() to a
+      // location it considers unchanged from its in-flight state is what
+      // made the route swap silently no-op — hence "menu closes, page
+      // doesn't change."
       onTapUp: (_) {
         setState(() => _isPressed = false);
         widget.onTap(widget.route);
       },
       onTapCancel: () => setState(() => _isPressed = false),
-      onTap: () => widget.onTap(widget.route),
       onHover: (value) => setState(() => _isHovered = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),

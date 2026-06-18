@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/fade_in_section.dart';
+import 'package:mv/widgets/scroll_reveal.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mv/widgets/footer.dart';
 
@@ -10,15 +11,18 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Hero stays on FadeInSection (page-load fade, since it's above the fold).
+    // Every section below it uses ScrollReveal so it animates in as the user
+    // scrolls down to it, instead of all firing once on page load.
     return Column(
       children: [
         _buildHeroSection(context),
-        FadeInSection(delay: const Duration(milliseconds: 100), child: _buildFeaturesSection(context)),
-        FadeInSection(delay: const Duration(milliseconds: 200), child: _buildServicesSection(context)),
-        FadeInSection(delay: const Duration(milliseconds: 300), child: _buildCapabilitiesSection(context)),
-        FadeInSection(delay: const Duration(milliseconds: 400), child: _buildWhyChooseUsSection(context)),
-        FadeInSection(delay: const Duration(milliseconds: 500), child: _buildStatsSection(context)),
-        FadeInSection(delay: const Duration(milliseconds: 600), child: _buildCTASection(context)),
+        _buildFeaturesSection(context),
+        _buildServicesSection(context),
+        _buildCapabilitiesSection(context),
+        _buildWhyChooseUsSection(context),
+        _buildStatsSection(context),
+        _buildCTASection(context),
         const AppFooter(),
       ],
     );
@@ -138,16 +142,21 @@ class HomePageContent extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              Text(
-                'Why MV Manufacturing LLC?',
-                style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
-                textAlign: TextAlign.center,
+              ScrollReveal(
+                child: Text(
+                  'Why MV Manufacturing LLC?',
+                  style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
+                  textAlign: TextAlign.center,
+                ),
               ),
               SizedBox(height: r.spacingM),
-              Text(
-                'Precision machining with a personal touch — every job handled by the owner',
-                style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)),
-                textAlign: TextAlign.center,
+              ScrollReveal(
+                delay: const Duration(milliseconds: 80),
+                child: Text(
+                  'Precision machining with a personal touch — every job handled by the owner',
+                  style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)),
+                  textAlign: TextAlign.center,
+                ),
               ),
               SizedBox(height: r.spacingXXL),
               Wrap(
@@ -155,9 +164,9 @@ class HomePageContent extends StatelessWidget {
                 runSpacing: r.spacingL,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildFeatureCard(r, icon: Icons.precision_manufacturing, title: 'Precision Engineering', description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment'),
-                  _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times to keep your project moving'),
-                  _buildFeatureCard(r, icon: Icons.person, title: 'Owner-Operated', description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality'),
+                  ScrollReveal.row(index: 0, child: _buildFeatureCard(r, icon: Icons.precision_manufacturing, title: 'Precision Engineering', description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment')),
+                  ScrollReveal.row(index: 1, child: _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times to keep your project moving')),
+                  ScrollReveal.row(index: 2, child: _buildFeatureCard(r, icon: Icons.person, title: 'Owner-Operated', description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality')),
                 ],
               ),
             ],
@@ -206,18 +215,23 @@ class HomePageContent extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              Text('What We Do', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+              ScrollReveal(
+                child: Text('What We Do', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+              ),
               SizedBox(height: r.spacingM),
-              Text('Full-service CNC machining from prototype to production run', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
+              ScrollReveal(
+                delay: const Duration(milliseconds: 80),
+                child: Text('Full-service CNC machining from prototype to production run', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
+              ),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.cardSpacing,
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildServiceCard(r, imageIcon: Icons.settings, title: 'CNC Milling', description: '3-axis milling for complex parts and tight tolerances'),
-                  _buildServiceCard(r, imageIcon: Icons.science, title: 'Rapid Prototyping', description: 'Fast single-piece and low-volume prototype runs'),
-                  _buildServiceCard(r, imageIcon: Icons.factory, title: 'Production Runs', description: 'Consistent quality on repeat orders up to 1,000+ parts/month'),
+                  ScrollReveal.row(index: 0, child: _buildServiceCard(r, imageIcon: Icons.settings, title: 'CNC Milling', description: '3-axis milling for complex parts and tight tolerances')),
+                  ScrollReveal.row(index: 1, child: _buildServiceCard(r, imageIcon: Icons.science, title: 'Rapid Prototyping', description: 'Fast single-piece and low-volume prototype runs')),
+                  ScrollReveal.row(index: 2, child: _buildServiceCard(r, imageIcon: Icons.factory, title: 'Production Runs', description: 'Consistent quality on repeat orders up to 1,000+ parts/month')),
                 ],
               ),
             ],
@@ -252,6 +266,7 @@ class HomePageContent extends StatelessWidget {
 
   Widget _buildCapabilitiesSection(BuildContext context) {
     final r = Responsive.of(context);
+    final materials = ['Aluminum', 'Stainless Steel', 'Titanium', 'Brass', 'Copper', 'Plastics'];
     return Container(
       padding: r.sectionPadding,
       color: Colors.white,
@@ -260,7 +275,9 @@ class HomePageContent extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              Text('Materials We Work With', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+              ScrollReveal(
+                child: Text('Materials We Work With', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+              ),
               SizedBox(height: r.spacingXXL),
               GridView.count(
                 crossAxisCount: r.materialGridColumns,
@@ -270,12 +287,8 @@ class HomePageContent extends StatelessWidget {
                 mainAxisSpacing: r.spacingL,
                 childAspectRatio: r.materialChipAspectRatio,
                 children: [
-                  _buildMaterialChip(r, 'Aluminum'),
-                  _buildMaterialChip(r, 'Stainless Steel'),
-                  _buildMaterialChip(r, 'Titanium'),
-                  _buildMaterialChip(r, 'Brass'),
-                  _buildMaterialChip(r, 'Copper'),
-                  _buildMaterialChip(r, 'Plastics'),
+                  for (var i = 0; i < materials.length; i++)
+                    ScrollReveal.row(index: i, child: _buildMaterialChip(r, materials[i])),
                 ],
               ),
             ],
@@ -309,26 +322,28 @@ class HomePageContent extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              Text('Experience & Expertise', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              ScrollReveal(
+                child: Text('Experience & Expertise', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              ),
               SizedBox(height: r.spacingXXL),
               r.isDesktop
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing')),
+                        Expanded(child: ScrollReveal.row(index: 0, child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing'))),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist')),
+                        Expanded(child: ScrollReveal.row(index: 1, child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist'))),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work')),
+                        Expanded(child: ScrollReveal.row(index: 2, child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work'))),
                       ],
                     )
                   : Column(
                       children: [
-                        _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing'),
+                        ScrollReveal.column(index: 0, child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing')),
                         SizedBox(height: r.spacingXL),
-                        _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist'),
+                        ScrollReveal.column(index: 1, child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist')),
                         SizedBox(height: r.spacingXL),
-                        _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work'),
+                        ScrollReveal.column(index: 2, child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work')),
                       ],
                     ),
             ],
@@ -358,25 +373,28 @@ class HomePageContent extends StatelessWidget {
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: r.isDesktop
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatItem(r, '2', 'CNC Machines'),
-                    _buildStatItem(r, '1,000+', 'Parts/Month Capacity'),
-                    _buildStatItem(r, '24hr', 'Quote Turnaround'),
-                  ],
-                )
-              : Wrap(
-                  spacing: r.spacingXL,
-                  runSpacing: r.spacingXL,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _buildStatItem(r, '2', 'CNC Machines'),
-                    _buildStatItem(r, '1,000+', 'Parts/Month Capacity'),
-                    _buildStatItem(r, '24hr', 'Quote Turnaround'),
-                  ],
-                ),
+          child: ScrollReveal(
+            visibilityThreshold: 0.3,
+            child: r.isDesktop
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildStatItem(r, '2', 'CNC Machines'),
+                      _buildStatItem(r, '1,000+', 'Parts/Month Capacity'),
+                      _buildStatItem(r, '24hr', 'Quote Turnaround'),
+                    ],
+                  )
+                : Wrap(
+                    spacing: r.spacingXL,
+                    runSpacing: r.spacingXL,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildStatItem(r, '2', 'CNC Machines'),
+                      _buildStatItem(r, '1,000+', 'Parts/Month Capacity'),
+                      _buildStatItem(r, '24hr', 'Quote Turnaround'),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
@@ -403,24 +421,26 @@ class HomePageContent extends StatelessWidget {
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: r.maxNarrowWidth),
-          child: Column(
-            children: [
-              Text('Ready to Get Started?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
-              SizedBox(height: r.spacingM),
-              Text('Send us your drawings and get a quote within 24 hours', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
-              SizedBox(height: r.spacingXL),
-              ElevatedButton(
-                onPressed: () => showQuoteDialog(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0d47a1),
-                  foregroundColor: Colors.white,
-                  padding: r.ctaButtonPadding,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  elevation: 2,
+          child: ScrollReveal(
+            child: Column(
+              children: [
+                Text('Ready to Get Started?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+                SizedBox(height: r.spacingM),
+                Text('Send us your drawings and get a quote within 24 hours', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
+                SizedBox(height: r.spacingXL),
+                ElevatedButton(
+                  onPressed: () => showQuoteDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0d47a1),
+                    foregroundColor: Colors.white,
+                    padding: r.ctaButtonPadding,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    elevation: 2,
+                  ),
+                  child: Text('Request a Quote', style: TextStyle(fontSize: r.buttonTextLarge, fontWeight: FontWeight.bold)),
                 ),
-                child: Text('Request a Quote', style: TextStyle(fontSize: r.buttonTextLarge, fontWeight: FontWeight.bold)),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
