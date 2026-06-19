@@ -11,11 +11,27 @@ import 'package:mv/widgets/styles.dart';
 ///     child: const Text('Get a Quote'),
 ///   )
 void showQuoteDialog(BuildContext context) {
-  showDialog(
+  showGeneralDialog(
     context: context,
     barrierDismissible: true,
-    useRootNavigator: true, 
-    builder: (_) => QuoteFormDialog(key: UniqueKey()),
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 350),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      // Scale + fade: dialog grows from 90% and fades in; on close the
+      // animation reverses automatically so it shrinks and fades out.
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      final scale = Tween<double>(begin: 0.85, end: 1.0).animate(curved);
+      final opacity = Tween<double>(begin: 0.0, end: 1.0).animate(curved);
+      return FadeTransition(
+        opacity: opacity,
+        child: ScaleTransition(
+          scale: scale,
+          child: child,
+        ),
+      );
+    },
+    pageBuilder: (context, animation, secondaryAnimation) => QuoteFormDialog(key: UniqueKey()),
   );
 }
 
