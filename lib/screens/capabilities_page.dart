@@ -243,6 +243,11 @@ class CapabilitiesPage extends StatelessWidget {
   }
 
   Widget _buildToleranceCard(Responsive r, String title, String value, String description) {
+    // Range values like "Ra 4-8 µin" don't animate cleanly as a single
+    // counter, so they stay as plain text. Everything else (scalars with
+    // optional prefix/suffix like "±0.0005\"" or "0.0002"") animates.
+    final hasRange = RegExp(r'\d-\d').hasMatch(value);
+
     return Container(
       padding: EdgeInsets.all(r.isMobile ? 16 : 24),
       decoration: BoxDecoration(color: const Color(0xFF0d47a1), borderRadius: BorderRadius.circular(r.cardRadius)),
@@ -250,7 +255,13 @@ class CapabilitiesPage extends StatelessWidget {
         children: [
           Text(title, style: TextStyle(fontSize: r.toleranceTitleFont, color: Colors.white70), textAlign: TextAlign.center),
           SizedBox(height: r.spacingS),
-          Text(value, style: TextStyle(fontSize: r.toleranceStatFont, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+          hasRange
+              ? Text(value, style: TextStyle(fontSize: r.toleranceStatFont, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center)
+              : AnimatedCounter(
+                  end: value,
+                  style: TextStyle(fontSize: r.toleranceStatFont, fontWeight: FontWeight.bold, color: Colors.white),
+                  useKShorthand: false,
+                ),
           SizedBox(height: r.spacingXS),
           Text(description, style: TextStyle(fontSize: r.caption + 1, color: Colors.white70), textAlign: TextAlign.center),
         ],
@@ -305,7 +316,11 @@ class CapabilitiesPage extends StatelessWidget {
       children: [
         Icon(icon, size: r.iconHero, color: const Color(0xFF0d47a1)),
         SizedBox(height: r.spacingM),
-        Text(value, style: TextStyle(fontSize: r.capacityStatFont, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+        AnimatedCounter(
+          end: value,
+          style: TextStyle(fontSize: r.capacityStatFont, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
+          useKShorthand: false, // keep full "1,000+" style here, not "1k+"
+        ),
         SizedBox(height: r.spacingXS),
         Text(label, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666)), textAlign: TextAlign.center),
       ],

@@ -218,22 +218,12 @@ class _AppShellState extends State<AppShell> {
             top: _navHeight,
             child: widget.child,
           ),
-          // Nav bar pinned to top
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: CustomNavigationBar(
-              key: _navBarKey,
-              currentRoute: widget.currentRoute,
-              onNavigate: (route) => context.go(route),
-              onMobileMenuChanged: _onMobileMenuChanged,
-            ),
-          ),
-          // Tap-outside overlay at AppShell level — covers page content area
-          // (y = 70 to bottom) so taps anywhere on page close the mobile menu.
-          // This works because it's a sibling to the page content in the same Stack,
-          // so hit-testing reaches it for taps on the page content area.
+          // Tap-outside overlay at AppShell level — covers the page content
+          // area (y = 70 to bottom) so taps anywhere on the page close the
+          // mobile menu. Painted BEFORE the nav bar so the nav bar (and its
+          // drawer of links) sits ON TOP of it — otherwise this opaque overlay
+          // would swallow taps on the links and the menu would close instead
+          // of navigating.
           if (_isMobileMenuOpen)
             Positioned(
               top: _navHeight,
@@ -246,6 +236,19 @@ class _AppShellState extends State<AppShell> {
                 child: Container(color: Colors.transparent),
               ),
             ),
+          // Nav bar pinned to top — rendered LAST so it (and the mobile drawer)
+          // receive taps above the tap-outside overlay.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: CustomNavigationBar(
+              key: _navBarKey,
+              currentRoute: widget.currentRoute,
+              onNavigate: (route) => context.go(route),
+              onMobileMenuChanged: _onMobileMenuChanged,
+            ),
+          ),
         ],
       ),
     );

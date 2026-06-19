@@ -343,7 +343,23 @@ class CustomNavigationBarState extends State<CustomNavigationBar>
   }
 
   void _handleMobileTap(String route) {
-    _navigateTo(route);
+    // Close the menu, then navigate ONLY once the close animation has fully
+    // completed (controller reaches the dismissed state). Navigating earlier —
+    // whether in the same frame or one frame later — cut the drawer's close
+    // animation short, so it snapped or slid too fast. Waiting for the full
+    // ~300ms slide lets it finish cleanly before the page switches.
+    if (_isMobileMenuOpen) {
+      void onStatusChanged(AnimationStatus status) {
+        if (status == AnimationStatus.dismissed) {
+          _controller.removeStatusListener(onStatusChanged);
+          if (mounted) _navigateTo(route);
+        }
+      }
+      _controller.addStatusListener(onStatusChanged);
+      _toggleMobileMenu();
+    } else {
+      _navigateTo(route);
+    }
   }
 
   Widget _buildLogo() {

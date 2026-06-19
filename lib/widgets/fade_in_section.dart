@@ -110,11 +110,16 @@ class _FadeInSectionState extends State<FadeInSection>
 /// view (including scrolling back up past it) — same behavior as
 /// ScrollReveal's replayOnScroll. Pass [replayOnScroll]: false to only
 /// ever count up once, the first time it becomes visible.
+///
+/// Set [useKShorthand] to true (the default) to render values >= 1000 as
+/// "1k"-style shorthand (e.g. "1,000+" → counts to "1k+"). Pass false to
+/// keep the full comma-formatted number (e.g. "1,000+" → "1,000+").
 class AnimatedCounter extends StatefulWidget {
   final String end; // e.g. "24hr", "2", "1,000+"
   final TextStyle style;
   final double visibilityThreshold;
   final bool replayOnScroll;
+  final bool useKShorthand;
 
   const AnimatedCounter({
     super.key,
@@ -122,6 +127,7 @@ class AnimatedCounter extends StatefulWidget {
     required this.style,
     this.visibilityThreshold = 0.3,
     this.replayOnScroll = true,
+    this.useKShorthand = true,
   });
 
   @override
@@ -193,12 +199,21 @@ class _AnimatedCounterState extends State<AnimatedCounter>
 
   @override
   Widget build(BuildContext context) {
-    final match = RegExp(r'^(\d[\d,.]*)(.*)$').firstMatch(widget.end);
+    // Regex: optional non-digit prefix (e.g. "±"), then the number, then suffix.
+    // Example: "±0.0005\"" → prefix="±", numStr="0.0005", suffix="\""
+    final match = RegExp(r'^([^\d]*)(\d[\d,.]*)(.*)$').firstMatch(widget.end);
     if (match == null) return Text(widget.end, style: widget.style);
 
-    final numStr = match.group(1)!.replaceAll(',', '');
-    final suffix = match.group(2) ?? '';
+    final prefix = match.group(1) ?? '';
+    final numStr = match.group(2)!.replaceAll(',', '');
+    final suffix = match.group(3) ?? '';
     final num = double.tryParse(numStr) ?? 0;
+
+    // Preserve the source's decimal places so "0.0005" counts through
+    // 0.0000 → 0.0001 → … → 0.0005 instead of snapping to 0.
+    final decimalPlaces = numStr.contains('.')
+        ? numStr.split('.').last.length
+        : 0;
 
     return VisibilityDetector(
       key: _visibilityKey,
@@ -206,13 +221,35 @@ class _AnimatedCounterState extends State<AnimatedCounter>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
-          final value = (num * _controller.value).round();
-          final display = value >= 1000
-              ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
-              : value.toString();
-          return Text('$display$suffix', style: widget.style);
+          final value = num * _controller.value;
+          final display = value >= 1000 && widget.useKShorthand
+              ? (value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)
+              : (decimalPlaces > 0
+                  ? value.toStringAsFixed(decimalPlaces)
+                  : value.round().toString());
+
+          // For integers >= 1000 with useKShorthand=false, add commas so
+          // "1,000+" displays as "1,000+" rather than "1000+".
+          final formatted = (!widget.useKShorthand &&
+              decimalPlaces == 0 &&
+              display.length > 3 &&
+              int.tryParse(display) != null)
+              ? _addCommas(display)
+              : display;
+
+          return Text('$prefix$formatted$suffix', style: widget.style);
         },
       ),
     );
+  }
+
+  static String _addCommas(String digits) {
+    final chars = digits.runes.toList();
+    final buf = StringBuffer();
+    for (var i = 0; i < chars.length; i++) {
+      if (i > 0 && (chars.length - i) % 3 == 0) buf.write(',');
+      buf.write(String.fromCharCode(chars[i]));
+    }
+    return buf.toString();
   }
 }

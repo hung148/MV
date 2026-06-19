@@ -102,7 +102,20 @@ class _ScrollRevealState extends State<ScrollReveal>
   int _visibilityGeneration = 0;
   late final Key _visibilityKey;
 
+  // --- Scroll velocity tracking ------------------------------------------------
+  // Lets us detect fast scrolling so we can skip the stagger delay and snap
+  // items in immediately instead of letting them trail in one-by-one.
+  ScrollPosition? _trackedPosition;
+  double _lastPixels = 0;
+  DateTime _lastSampleTime =
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  double _speedPxPerMs = 0; // absolute scroll speed
+
   static const Duration _hideDuration = Duration(milliseconds: 180);
+  // Reveal is capped to this when fast-scrolling so items feel instant.
+  static const Duration _fastRevealDuration = Duration(milliseconds: 180);
+  // Above ~1.0 px/ms (~1000 px/s) we treat the scroll as "fast".
+  static const double _fastScrollThreshold = 1.0;
 
   @override
   void initState() {
@@ -150,13 +163,21 @@ class _ScrollRevealState extends State<ScrollReveal>
       _visibilityGeneration++;
       final generationAtSchedule = _visibilityGeneration;
       final begin = _beginOffsetFor(context);
-      Future.delayed(widget.delay, () {
+
+      // When the user is scrolling fast, skip the stagger delay entirely and
+      // shorten the reveal so items appear instantly instead of trailing in.
+      final scrollingFast = _speedPxPerMs >= _fastScrollThreshold;
+      final effectiveDelay = scrollingFast ? Duration.zero : widget.delay;
+      final effectiveDuration =
+          scrollingFast ? _fastRevealDuration : widget.duration;
+
+      Future.delayed(effectiveDelay, () {
         if (_disposed || !mounted) return;
         if (generationAtSchedule != _visibilityGeneration) return;
         _slide = Tween<Offset>(begin: begin, end: Offset.zero).animate(
           CurvedAnimation(parent: _controller, curve: Curves.easeOut),
         );
-        _controller.duration = widget.duration;
+        _controller.duration = effectiveDuration;
         _controller.forward(from: 0);
       });
     } else {
@@ -173,13 +194,45 @@ class _ScrollRevealState extends State<ScrollReveal>
   @override
   void dispose() {
     _disposed = true;
+    _trackedPosition?.removeListener(_onPositionChanged);
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
 
+  // Called when the tracked scroll position changes; samples velocity so that
+  // `_onVisibilityChanged` can decide whether to skip the stagger delay.
+  void _onPositionChanged() {
+    final position = _trackedPosition;
+    if (position == null) return;
+    final now = DateTime.now();
+    final dtMs = now.difference(_lastSampleTime).inMilliseconds;
+    if (dtMs > 0) {
+      final moved = (position.pixels - _lastPixels).abs();
+      _speedPxPerMs = moved / dtMs;
+    }
+    _lastPixels = position.pixels;
+    _lastSampleTime = now;
+  }
+
+  // Lazily attach a listener to the nearest scroll position the first time we
+  // build inside a Scrollable. Re-runs every build so it follows the widget if
+  // the scroll context changes.
+  void _maybeTrackPosition(BuildContext context) {
+    final position = Scrollable.maybeOf(context)?.position;
+    if (identical(position, _trackedPosition)) return;
+    _trackedPosition?.removeListener(_onPositionChanged);
+    _trackedPosition = position;
+    if (position != null) {
+      _lastPixels = position.pixels;
+      _lastSampleTime = DateTime.now();
+      position.addListener(_onPositionChanged);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _maybeTrackPosition(context);
     return VisibilityDetector(
       key: _visibilityKey,
       onVisibilityChanged: _onVisibilityChanged,
