@@ -39,17 +39,9 @@ class PageTransitionNotifier extends InheritedNotifier<ValueNotifier<bool>> {
 }
 
 // ─── Fade page wrapper ──────────────────────────────────────────────────────
-// Wraps the page content, drives PageTransitionNotifier off the route
-// transition's own AnimationController (provided by GoRouter/Navigator),
-// instead of a separate hand-rolled controller. This is what makes the
-// fade reliable — GoRouter guarantees this animation always runs to
-// completion for every push/replace.
 class _FadeRouteContent extends StatefulWidget {
   final Widget child;
-  // Drives this page's own fade-IN (second half of the shared timeline).
   final Animation<double> inOpacity;
-  // Drives this page's fade-OUT while the NEXT page is pushed on top of it
-  // (first half of the shared timeline, from the next page's perspective).
   final Animation<double> outOpacity;
 
   const _FadeRouteContent({
@@ -69,13 +61,10 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
   @override
   void initState() {
     super.initState();
-    // Reset scroll position for the new page.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
     });
     widget.inOpacity.addStatusListener(_onStatusChanged);
-    // If we mounted already-completed (e.g. first route), fire after a small
-    // buffer so section animations never overlap the tail of the page fade.
     if (widget.inOpacity.status == AnimationStatus.completed) {
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) _sectionsReady.value = true;
@@ -85,8 +74,6 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
 
   void _onStatusChanged(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      // Buffer prevents section anims from firing exactly as the page fade ends,
-      // which causes a visible content pop / stutter on Flutter web.
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) _sectionsReady.value = true;
       });
@@ -105,19 +92,6 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
 
   @override
   Widget build(BuildContext context) {
-    // Two stacked FadeTransitions instead of a manual Opacity widget.
-    // FadeTransition uses RenderAnimatedOpacity under the hood, which Flutter
-    // can composite as a cached layer rather than repainting the whole
-    // subtree's raster content every animation tick — this is what removes
-    // the stutter that a plain Opacity (driven via AnimatedBuilder) caused
-    // on heavier pages.
-    //
-    // outOpacity drives this page fading OUT (1→0) when a new page is being
-    // pushed on top of it. inOpacity drives this page fading IN (0→1) when
-    // it is the incoming page. Exactly one of the two is ever animating at
-    // a time (see _fadePage below), so nesting them is equivalent to
-    // multiplying — but each gets its own compositing layer instead of
-    // forcing a shared repaint path.
     return FadeTransition(
       opacity: widget.outOpacity,
       child: FadeTransition(
@@ -134,11 +108,6 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
   }
 }
 
-/// Builds a [CustomTransitionPage] that fades [child] in/out sequentially:
-/// the outgoing page fully disappears (first half of the transition) before
-/// the incoming page fades in (second half). Both halves run off the same
-/// underlying animation clock via [Interval], so they can never drift out
-/// of sync with each other.
 CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
     key: state.pageKey,
@@ -146,24 +115,10 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
     reverseTransitionDuration: const Duration(milliseconds: 400),
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, pageChild) {
-      // First half of this page's own forward-push: fade IN, from 0.5→1.0
-      // of the shared clock so it starts only after the previous page (whose
-      // outOpacity is driven by this same `animation` instance, used as ITS
-      // secondaryAnimation) has finished disappearing.
-      //
-      // Curves.linear here (not easeOut) — easing curves that start with a
-      // steep slope (easeOut ramps fast off zero) make the very first
-      // frames of the fade-in jump in opacity quickly, which can make a
-      // hitch in that first frame more visually obvious. Linear keeps the
-      // opening of the fade gentle.
       final fadeIn = CurvedAnimation(
         parent: animation,
         curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
       );
-      // When this page is the OLD one and a new page is pushed on top of it,
-      // `secondaryAnimation` runs 0.0→1.0. Fade OUT during the first half
-      // only, then hold fully transparent for the second half while the
-      // new page fades in on top.
       final fadeOut = CurvedAnimation(
         parent: secondaryAnimation,
         curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
@@ -227,16 +182,30 @@ class MVWebsite extends StatelessWidget {
 }
 
 // ─── AppShell ─────────────────────────────────────────────────────────────────
-// Persistent nav bar + page body. GoRouter now owns the page transition
-// animation (via CustomTransitionPage above), so this widget stays simple:
-// no GlobalKey, no manual AnimationController, no post-frame callback races.
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   final Widget child;
   final String currentRoute;
 
   const AppShell({super.key, required this.child, required this.currentRoute});
 
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
   static const double _navHeight = 70;
+  bool _isMobileMenuOpen = false;
+  final GlobalKey<CustomNavigationBarState> _navBarKey = GlobalKey();
+
+  void _onMobileMenuChanged(bool isOpen) {
+    if (mounted) {
+      setState(() => _isMobileMenuOpen = isOpen);
+    }
+  }
+
+  void _closeMobileMenu() {
+    _navBarKey.currentState?.closeMobileMenu();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -244,27 +213,39 @@ class AppShell extends StatelessWidget {
       backgroundColor: const Color(0xFF0d47a1),
       body: Stack(
         children: [
+          // Page content sits below the nav bar.
           Positioned.fill(
             top: _navHeight,
-            child: child,
+            child: widget.child,
           ),
-          // bottom: 0 (instead of leaving it unset) stretches this
-          // Positioned box to the full screen height. CustomNavigationBar
-          // itself only ever paints its real content at the top, but the
-          // mobile drawer's invisible "tap outside to close" overlay lives
-          // inside CustomNavigationBar and needs to hit-test across the
-          // *entire* screen while the drawer is open. A Positioned ancestor
-          // clips hit-testing to its own laid-out bounds regardless of any
-          // Clip.none used further down the tree for painting overflow, so
-          // without bottom: 0 here, taps below the drawer's natural height
-          // never reached the overlay's GestureDetector.
+          // Nav bar pinned to top
           Positioned(
-            top: 0, left: 0, right: 0, bottom: 0,
+            top: 0,
+            left: 0,
+            right: 0,
             child: CustomNavigationBar(
-              currentRoute: currentRoute,
+              key: _navBarKey,
+              currentRoute: widget.currentRoute,
               onNavigate: (route) => context.go(route),
+              onMobileMenuChanged: _onMobileMenuChanged,
             ),
           ),
+          // Tap-outside overlay at AppShell level — covers page content area
+          // (y = 70 to bottom) so taps anywhere on page close the mobile menu.
+          // This works because it's a sibling to the page content in the same Stack,
+          // so hit-testing reaches it for taps on the page content area.
+          if (_isMobileMenuOpen)
+            Positioned(
+              top: _navHeight,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _closeMobileMenu,
+                child: Container(color: Colors.transparent),
+              ),
+            ),
         ],
       ),
     );

@@ -11,9 +11,6 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Hero stays on FadeInSection (page-load fade, since it's above the fold).
-    // Every section below it uses ScrollReveal so it animates in as the user
-    // scrolls down to it, instead of all firing once on page load.
     return Column(
       children: [
         _buildHeroSection(context),

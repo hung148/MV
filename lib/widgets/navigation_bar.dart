@@ -7,23 +7,24 @@ import 'package:mv/widgets/quote_form.dart';
 class CustomNavigationBar extends StatefulWidget {
   final String currentRoute;
   final void Function(String route) onNavigate;
+  final void Function(bool isOpen)? onMobileMenuChanged;
 
   const CustomNavigationBar({
     super.key,
     required this.currentRoute,
     required this.onNavigate,
+    this.onMobileMenuChanged,
   });
 
   @override
-  State<CustomNavigationBar> createState() => _CustomNavigationBarState();
+  State<CustomNavigationBar> createState() => CustomNavigationBarState();
 }
 
-class _CustomNavigationBarState extends State<CustomNavigationBar> 
-  with SingleTickerProviderStateMixin {
+class CustomNavigationBarState extends State<CustomNavigationBar>
+    with SingleTickerProviderStateMixin {
   bool _isMobileMenuOpen = false;
-  late AnimationController _controller; // Controller for the menu icon
+  late AnimationController _controller;
 
-  // Store keys to measure the position of each nav item
   final Map<String, GlobalKey> _linkKeys = {
     '/': GlobalKey(),
     '/services': GlobalKey(),
@@ -32,23 +33,17 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
     '/gallery': GlobalKey(),
   };
 
-  // Desktop properties
+  // Desktop indicator
   double _indicatorLeft = 0;
   double _indicatorWidth = 0;
 
-  // Mobile properties
+  // Mobile indicator
   double _mobileIndicatorTop = 0;
   double _mobileIndicatorHeight = 0;
 
   bool _isFirstLoad = true;
-
-  // 1. Add a variable to track the last known width to detect layout flips
   double? _lastWidth;
 
-  // Key to measure the drawer's current rendered height, so the
-  // "tap outside to close" overlay can start right below the drawer
-  // instead of covering the whole screen (which was swallowing taps on
-  // the links themselves, since the overlay painted on top of them).
   final GlobalKey _drawerKey = GlobalKey();
   double _drawerHeight = 0;
 
@@ -59,16 +54,10 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    // Re-measure the drawer's height every frame while it's animating
-    // open/closed, so the tap-outside overlay (which starts below the
-    // drawer) tracks the drawer's growing/shrinking edge instead of
-    // snapping to a stale height.
     _controller.addListener(_updateDrawerHeight);
-    // initialize keys for routes you use
     for (final r in ['/', '/services', '/capabilities', '/about', '/gallery']) {
       _linkKeys[r] = GlobalKey();
     }
-
     WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
   }
 
@@ -83,54 +72,59 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
   void didUpdateWidget(covariant CustomNavigationBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.currentRoute != widget.currentRoute) {
-      // When switching pages, we want the animation
-      _isFirstLoad = false; 
+      _isFirstLoad = false;
       WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
     }
   }
 
-   @override
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
+
     final currentWidth = MediaQuery.of(context).size.width;
-    
-    // Check if we crossed the desktop/mobile breakpoint (1024)
+
     if (_lastWidth != null) {
-      bool wasDesktop = _lastWidth! >= 1024;
-      bool isDesktop = currentWidth >= 1024;
-      
+      final wasDesktop = _lastWidth! >= 1024;
+      final isDesktop = currentWidth >= 1024;
+
       if (wasDesktop != isDesktop) {
-        // If we switched layouts, treat it as a "first load" 
-        // so the bar snaps into place instead of sliding from a weird position
+        // Snap indicator into place instead of sliding from a stale position.
         _isFirstLoad = true;
+
+        // Close the mobile menu when switching to desktop. If left open,
+        // _isMobileMenuOpen stays true and _buildMobileNav renders the
+        // full-screen tap-outside overlay on the next mobile rebuild,
+        // blocking all interaction.
+        if (isDesktop && _isMobileMenuOpen) {
+          _isMobileMenuOpen = false;
+          _controller.reverse();
+        }
       }
     }
     _lastWidth = currentWidth;
 
-    // Trigger re-measurement after the layout has finished changing
     WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
   }
 
-  // 2. Enhance _updateIndicator to be more resilient
   void _updateIndicator() {
     if (!mounted) return;
 
     final key = _linkKeys[widget.currentRoute];
     if (key == null || key.currentContext == null) {
-      // If we are on mobile and the menu isn't open, we can't measure
+      // On mobile with menu closed the desktop links aren't in the tree —
+      // nothing to measure yet, bail out without scheduling an infinite retry.
       if (!_isMobileMenuOpen && MediaQuery.of(context).size.width < 1024) return;
-      
+
       Future.delayed(const Duration(milliseconds: 50), _updateIndicator);
       return;
     }
 
     final RenderObject? renderObject = key.currentContext!.findRenderObject();
-    final RenderStack? stackBox = key.currentContext!.findAncestorRenderObjectOfType<RenderStack>();
+    final RenderStack? stackBox =
+        key.currentContext!.findAncestorRenderObjectOfType<RenderStack>();
 
     if (renderObject is RenderBox && stackBox != null) {
       final position = renderObject.localToGlobal(Offset.zero, ancestor: stackBox);
-      
       setState(() {
         _indicatorLeft = position.dx;
         _indicatorWidth = renderObject.size.width;
@@ -155,34 +149,38 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
 
   void _toggleMobileMenu() {
     if (!mounted) return;
+    final newState = !_isMobileMenuOpen;
     setState(() {
-      _isMobileMenuOpen = !_isMobileMenuOpen;
-      if (_isMobileMenuOpen) {
+      _isMobileMenuOpen = newState;
+      if (newState) {
         _controller.forward();
-        // Wait for the drawer to exist before measuring
         WidgetsBinding.instance.addPostFrameCallback((_) => _updateIndicator());
       } else {
         _controller.reverse();
-        // We don't reset _mobileIndicatorHeight to 0 immediately 
-        // so it stays visible while the drawer is sliding up.
       }
     });
+    widget.onMobileMenuChanged?.call(newState);
+  }
+
+  // Public method to close the mobile menu from outside (e.g., tap-outside overlay in AppShell)
+  void closeMobileMenu() {
+    if (_isMobileMenuOpen) {
+      _toggleMobileMenu();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
-
     return SizedBox(
       width: double.infinity,
-
       child: isDesktop ? _buildDesktopNav() : _buildMobileNav(),
     );
   }
 
   Widget _buildDesktopNav() {
     return Container(
-      height: 70, // Fixed height to match AppShell padding
+      height: 70,
       decoration: BoxDecoration(
         color: const Color(0xFF1a1a1a),
         boxShadow: [
@@ -198,17 +196,15 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
         children: [
           _buildLogo(),
           const SizedBox(width: 20),
-          // FIXED OVERFLOW: Wrapped links in Flexible + FittedBox
           Expanded(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 750, 
+                width: 750,
                 child: Stack(
                   alignment: Alignment.bottomLeft,
                   children: [
-                    // 1. Navigation Links 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -221,28 +217,24 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
                         _buildContactButton(),
                       ],
                     ),
-                    
-                    // 2. Sliding Indicator
+                    // Sliding active-route indicator
                     AnimatedPositioned(
-                      // If width is 0, keep it invisible. 
-                      // If it's the first load, use 0 duration to snap into place.
-                      duration: _indicatorWidth == 0 || _isFirstLoad 
-                          ? Duration.zero 
+                      duration: _indicatorWidth == 0 || _isFirstLoad
+                          ? Duration.zero
                           : const Duration(milliseconds: 350),
                       curve: Curves.easeOutCubic,
                       left: _indicatorLeft,
-                      bottom: 0, // Adjusted for typical text baseline
+                      bottom: 0,
                       child: Opacity(
-                        // Hide the bar until it has a measured width
                         opacity: _indicatorWidth == 0 ? 0 : 1,
                         child: AnimatedContainer(
-                          duration: _indicatorWidth == 0 || _isFirstLoad 
-                              ? Duration.zero 
+                          duration: _indicatorWidth == 0 || _isFirstLoad
+                              ? Duration.zero
                               : const Duration(milliseconds: 350),
                           curve: Curves.easeOutCubic,
                           width: _indicatorWidth,
                           height: 3,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: ShopStyles.primaryBlue,
                           ),
                         ),
@@ -259,18 +251,16 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
   }
 
   Widget _buildMobileNav() {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Stack(
+      // Clip.none lets the drawer paint below the nav bar's own layout height,
+      // but the Stack's own size is determined solely by its non-Positioned
+      // children (the Column below), so it never claims more vertical space
+      // than the nav bar + drawer actually need.
       clipBehavior: Clip.none,
       children: [
         // LAYER 1: NAV BAR + DRAWER
-        // This must come BEFORE the overlay in the children list so the
-        // overlay paints (and hit-tests) on top of it. Stack hit-testing
-        // walks children back-to-front, so whichever child is listed last
-        // gets first crack at a tap. With the overlay listed first (as it
-        // used to be), this Column painted over it and silently swallowed
-        // every "tap outside to close" gesture.
+        // The tap-outside overlay is now at the AppShell level (in main.dart)
+        // so it can cover the page content area and receive taps there.
         Column(
           key: _drawerKey,
           mainAxisSize: MainAxisSize.min,
@@ -303,22 +293,16 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
             ),
 
             // ANIMATED DRAWER
-            // SizeTransition is driven by _controller (the same one used for the
-            // menu icon), so open AND close both animate against a real 0->1
-            // value. AnimatedSize only animates when it can measure a child's
-            // natural size on both ends of the transition; toggling height
-            // between null and 0 collapses the child to 0 in the same frame,
-            // so there's nothing left for AnimatedSize to interpolate on close.
             ClipRect(
               child: SizeTransition(
                 sizeFactor: _controller,
-                axisAlignment: -1.0, // anchor to top, like Alignment.topCenter
+                axisAlignment: -1.0,
                 child: Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(color: Color(0xFF2a2a2a)),
-                  child: Stack( 
+                  child: Stack(
                     children: [
-                      // Vertical Indicator
+                      // Vertical active-route indicator
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 350),
                         curve: Curves.easeOutCubic,
@@ -332,7 +316,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
                           color: ShopStyles.primaryBlue,
                         ),
                       ),
-                      // Links Column
+                      // Links
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -354,34 +338,11 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
             ),
           ],
         ),
-
-        // LAYER 2: INVISIBLE OVERLAY (must be listed AFTER the drawer Column above)
-        // Starts at _drawerHeight (top bar + current drawer extent) rather
-        // than top: 0 — covering from the very top swallowed every tap on
-        // the drawer's own links before they could reach the InkWells
-        // underneath, since Stack hit-testing gives the last/topmost child
-        // first crack at a tap and this overlay painted above everything.
-        // That's what made link taps look like they only closed the menu.
-        if (_isMobileMenuOpen)
-          Positioned(
-            top: _drawerHeight,
-            left: 0,
-            right: 0,
-            height: screenHeight - _drawerHeight,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _toggleMobileMenu,
-              child: Container(color: Colors.transparent),
-            ),
-          ),
       ],
     );
   }
 
   void _handleMobileTap(String route) {
-    // Menu intentionally stays open here — tapping a link should switch
-    // the page underneath while the drawer stays open on top. Use the
-    // hamburger/X icon or tap outside to close it (_toggleMobileMenu).
     _navigateTo(route);
   }
 
@@ -422,7 +383,6 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
     );
   }
 
-  // 4. Enhanced Hover Animation for the CTA Button
   bool _isCtaHovered = false;
 
   Widget _buildContactButton() {
@@ -454,19 +414,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar>
     );
   }
 
-  // Delegates to AppShell's onNavigate (context.go).
   void _navigateTo(String route) {
-    // IMPORTANT: don't call Navigator.of(context).pop() / canPop() here.
-    // Inside a ShellRoute, the nearest Navigator found by walking up from
-    // this context IS the GoRouter navigator that owns the page stack —
-    // there's no separate Navigator above it to "close a dialog" on.
-    // canPop() was returning true simply because GoRouter had back
-    // history, so pop() was popping the route stack itself, racing with /
-    // undoing the context.go(route) call below. That's what made link
-    // taps look like "menu closes, page doesn't change" — the pop and the
-    // go() were fighting over the same stack. If a quote dialog needs to
-    // be dismissed before navigating, that should happen via the dialog's
-    // own onPressed/close handler, not from here.
     widget.onNavigate(route);
   }
 }
@@ -492,20 +440,11 @@ class _NavBarLinkState extends State<_NavBarLink> {
     final isActive = widget.currentRoute == widget.route;
 
     return InkWell(
-      // onTapUp (below) already calls widget.onTap, so a separate onTap
-      // handler here would fire the same callback twice per click — Flutter
-      // dispatches onTapDown -> onTapUp -> onTap for a single tap gesture,
-      // not just one of them. That meant every click called _navigateTo
-      // (and therefore context.go) twice in a row, which can race with
-      // GoRouter's own transition handling.
-      // Triggered when finger/mouse touches down
       onTapDown: (_) => setState(() => _isPressed = true),
-      // Triggered when finger/mouse lifts up
       onTapUp: (_) {
         setState(() => _isPressed = false);
         widget.onTap(widget.route);
       },
-      // Triggered if user slides finger away without lifting
       onTapCancel: () => setState(() => _isPressed = false),
       onHover: (hovering) => setState(() => _isHovered = hovering),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
@@ -521,8 +460,7 @@ class _NavBarLinkState extends State<_NavBarLink> {
           ),
         ),
         child: AnimatedScale(
-          // Shrink to 92% size when pressed
-          scale: _isPressed ? 0.92 : 1.0, 
+          scale: _isPressed ? 0.92 : 1.0,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeInOut,
           child: Text(
@@ -563,18 +501,6 @@ class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
 
     return InkWell(
       onTapDown: (_) => setState(() => _isPressed = true),
-      // onTapUp is the single source of truth for the tap action — it
-      // already calls widget.onTap. A separate onTap handler used to sit
-      // alongside this and fire the exact same callback again for the same
-      // gesture (Flutter dispatches onTapDown -> onTapUp -> onTap in that
-      // order for one tap, not just one of them), so every tap called
-      // _handleMobileTap -> _navigateTo -> context.go(route) TWICE in a
-      // row. The first call closed the drawer and kicked off navigation;
-      // the second call landed milliseconds later while GoRouter was still
-      // processing the first transition, and re-triggering go() to a
-      // location it considers unchanged from its in-flight state is what
-      // made the route swap silently no-op — hence "menu closes, page
-      // doesn't change."
       onTapUp: (_) {
         setState(() => _isPressed = false);
         widget.onTap(widget.route);
@@ -597,10 +523,9 @@ class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
           ),
         ),
         child: AnimatedScale(
-          // Shrink slightly on press
           scale: _isPressed ? 0.96 : 1.0,
           duration: const Duration(milliseconds: 100),
-          alignment: Alignment.centerLeft, // Keep text aligned to the left while scaling
+          alignment: Alignment.centerLeft,
           child: Text(
             widget.title,
             style: ShopStyles.navLink.copyWith(
