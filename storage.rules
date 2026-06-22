@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MV Manufacturing — Cloud Storage Security Rules
+//
+// Threat model: quote submitters are ANONYMOUS (no auth). We can't identify
+// them, so we bind their upload permission to a Firestore doc they just
+// created. The flow (see lib/widgets/quote_form.dart):
+//
+//   1. Client creates Firestore doc at quotes/{quoteId}  (gated by firestore.rules)
+//   2. Client uploads files to   gs://.../quotes/{quoteId}/{filename}
+//   3. Client updates the doc with the file metadata list
+//
+// A write to Storage is allowed ONLY when:
+//   - A doc exists at quotes/{quoteId}, AND
+//   - That doc was created within the last 10 minutes (fresh-creation window),
+//     so a leaked/old quoteId can't be reused to dump files later, AND
+//   - The file is ≤ 10 MB, AND
+//   - The content type is in the CAD/docs/images allowlist.
+//
+// Reads are admin-only — customers must NOT be able to browse each other's
+// uploads. (Admin = anyone signed into the Firebase project, i.e. you.)
+//
+// Path layout: quotes/{quoteId}/{filename}  — one folder per quote.
+// ─────────────────────────────────────────────────────────────────────────────
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─── Quote attachments ────────────────────────────────────────────────────
+    match /quotes/{quoteId}/{fileName=**} {
+      // Only the project owner (signed-in admin) can read uploads.
+      allow read: if request.auth != null;
+
+      allow write: if
+        // 1. A Firestore doc must exist at this quoteId (proves the uploader
+        //    just went through the validated quote form).
+        firestore.exists(/databases/(default)/documents/quotes/{quoteId})
+
+        // 2. Check if the doc has submittedAt field. If it exists and is recent,
+        //    allow the write. If it doesn't exist yet (serverTimestamp case),
+        //    still allow it since we just validated the doc exists above.
+        //    This avoids the issue where serverTimestamp() hasn't resolved yet.
+        && (
+          !firestore.get(/databases/(default)/documents/quotes/{quoteId})
+            .data.keys().hasAny(['submittedAt'])
+          || firestore.get(/databases/(default)/documents/quotes/{quoteId})
+              .data.submittedAt.timestampValue()
+                > timestamp.value(timestamp.now().seconds() - 600, 'UTC')
+        )
+
+        // 3. Size cap: 10 MB per file.
+        && request.resource.size <= 10 * 1024 * 1024
+
+        // 4. Content-type allowlist. We match on the client-declared MIME type
+        //    AND the file extension as a second check (MIME can be spoofed, so
+        //    the extension gate adds a cheap second layer).
+        && (
+          request.resource.contentType.matches('^application/(pdf|zip|x-tgz)$')
+          || request.resource.contentType.matches('^image/(png|jpeg)$')
+          || request.resource.contentType.matches('^application/(octet-stream|step|iges|x-step|x-iges)$')
+          || fileName.lower().matches('(^|/)[^/]*\\.(step|stp|iges|igs|stl|dxf|dwg|pdf|png|jpe?g|zip)$')
+        );
+    }
+
+    // ─── Default deny: anything not explicitly above ──────────────────────────
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

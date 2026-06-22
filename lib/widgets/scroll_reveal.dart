@@ -34,7 +34,7 @@ class ScrollReveal extends StatefulWidget {
     this.direction = RevealDirection.vertical,
     this.delay = Duration.zero,
     this.duration = const Duration(milliseconds: 350),
-    this.visibilityThreshold = 0.15,
+    this.visibilityThreshold = 0.10,
     this.replayOnScroll = true,
   });
 
@@ -46,7 +46,7 @@ class ScrollReveal extends StatefulWidget {
     required Widget child,
     Duration baseDuration = const Duration(milliseconds: 350),
     Duration? duration, // override per-item duration (defaults to baseDuration)
-    Duration staggerStep = const Duration(milliseconds: 60),
+    Duration staggerStep = const Duration(milliseconds: 30),
     bool replayOnScroll = true,
   }) {
     return ScrollReveal(
@@ -74,7 +74,7 @@ class ScrollReveal extends StatefulWidget {
     required Widget child,
     Duration baseDuration = const Duration(milliseconds: 350),
     Duration? duration, // override per-item duration (defaults to baseDuration)
-    Duration staggerStep = const Duration(milliseconds: 60),
+    Duration staggerStep = const Duration(milliseconds: 30),
     bool replayOnScroll = true,
   }) {
     return ScrollReveal(

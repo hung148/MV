@@ -28,7 +28,6 @@ class HomePageContent extends StatelessWidget {
   Widget _buildHeroSection(BuildContext context) {
     final r = Responsive.of(context);
     return Container(
-      height: r.heroHeight,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -38,22 +37,24 @@ class HomePageContent extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.3),
-                  Colors.black.withValues(alpha: 0.1),
-                ],
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.3),
+                    Colors.black.withValues(alpha: 0.1),
+                  ],
+                ),
               ),
             ),
           ),
           Center(
             child: FadeInSection(
               child: Container(
-                padding: r.pagePadding,
+                padding: r.heroPadding,
                 constraints: BoxConstraints(maxWidth: r.maxContentWidth),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -241,7 +242,6 @@ class HomePageContent extends StatelessWidget {
   Widget _buildServiceCard(Responsive r, {required IconData imageIcon, required String title, required String description}) {
     return Container(
       width: r.serviceCardWidth,
-      height: r.serviceCardHeight,
       padding: EdgeInsets.all(r.cardPadding),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -263,7 +263,16 @@ class HomePageContent extends StatelessWidget {
 
   Widget _buildCapabilitiesSection(BuildContext context) {
     final r = Responsive.of(context);
-    final materials = ['Aluminum', 'Stainless Steel', 'Titanium', 'Brass', 'Copper', 'Plastics'];
+
+    const materials = [
+      _MaterialItem(name: 'Aluminum',       image: 'assets/images/home_images/aluminum.webp'),
+      _MaterialItem(name: 'Stainless Steel', image: 'assets/images/home_images/stainless_steel.webp'),
+      _MaterialItem(name: 'Titanium',       image: 'assets/images/home_images/titanium_metal.webp'),
+      _MaterialItem(name: 'Brass',          image: 'assets/images/home_images/brass_metal.webp'),
+      _MaterialItem(name: 'Copper',         image: 'assets/images/home_images/copper_metal_surface.webp'),
+      _MaterialItem(name: 'Plastics',       image: 'assets/images/home_images/plastic_meterial.webp'),
+    ];
+
     return Container(
       padding: r.sectionPadding,
       color: Colors.white,
@@ -273,19 +282,23 @@ class HomePageContent extends StatelessWidget {
           child: Column(
             children: [
               ScrollReveal(
-                child: Text('Materials We Work With', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
+                child: Text(
+                  'Materials We Work With',
+                  style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
+                  textAlign: TextAlign.center,
+                ),
               ),
               SizedBox(height: r.spacingXXL),
-              GridView.count(
-                crossAxisCount: r.materialGridColumns,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: r.spacingL,
-                mainAxisSpacing: r.spacingL,
-                childAspectRatio: r.materialChipAspectRatio,
+              Wrap(
+                spacing: r.spacingL,
+                runSpacing: r.spacingL,
+                alignment: WrapAlignment.center,
                 children: [
                   for (var i = 0; i < materials.length; i++)
-                    ScrollReveal.row(index: i, child: _buildMaterialChip(r, materials[i])),
+                    ScrollReveal.row(
+                      index: i % r.materialGridColumns,
+                      child: _buildMaterialCard(r, materials[i]),
+                    ),
                 ],
               ),
             ],
@@ -295,16 +308,58 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildMaterialChip(Responsive r, String material) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: r.spacingM, horizontal: r.spacingL),
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f5f5),
+  Widget _buildMaterialCard(Responsive r, _MaterialItem material) {
+    return SizedBox(
+      width: r.materialCardWidth,
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(r.cardRadius),
-        border: Border.all(color: const Color(0xFFe0e0e0)),
-      ),
-      child: Center(
-        child: Text(material, style: TextStyle(fontSize: r.body + 2, fontWeight: FontWeight.w600, color: const Color(0xFF1a1a1a))),
+        child: Stack(
+          children: [
+            // Image
+            AspectRatio(
+              aspectRatio: 4 / 3,
+              child: Image.asset(
+                material.image,
+                fit: BoxFit.cover,
+              ),
+            ),
+            // Dark gradient overlay at bottom
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.6),
+                    ],
+                    stops: const [0.5, 1.0],
+                  ),
+                ),
+              ),
+            ),
+            // Material name at bottom
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Text(
+                  material.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -443,4 +498,12 @@ class HomePageContent extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Material item model ──────────────────────────────────────────────────────
+
+class _MaterialItem {
+  final String name;
+  final String image;
+  const _MaterialItem({required this.name, required this.image});
 }

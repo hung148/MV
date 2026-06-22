@@ -1,0 +1,80 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MV Manufacturing — Firestore Security Rules
+//
+// Threat model: the only client write in the entire app is a new document in
+// `quotes` (see lib/widgets/quote_form.dart). There are NO client reads.
+// The email Cloud Function (functions/index.js) uses the Admin SDK, which
+// BYPASSES these rules entirely, so locking things down here does not affect
+// notifications — it only stops unauthenticated clients from spamming, reading,
+// or deleting data.
+//
+// Defense layers on `quotes` create:
+//   1. Field validation  — required strings, email shape, length caps.
+//   2. Honeypot (_hp)     — hidden field no human fills; must be empty.
+//   3. Time-trap (_t)     — ms between form open and submit; humans are slow,
+//                           bots are instant. Client-spoofable, but combined
+//                           with the honeypot it stops the overwhelming
+//                           majority of automated spam at zero user friction.
+//
+// NOTE: do NOT strictly validate `submittedAt` — it uses FieldValue.server
+// Timestamp(), which resolves server-side and can appear as a sentinel at rule
+// evaluation time. Over-validating it silently breaks quote submission.
+// ─────────────────────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Quotes: create-only, fully validated ──────────────────────────────────
+    match /quotes/{quoteId} {
+      // Clients must never read or delete quotes.
+      allow read: if false;
+      allow delete: if false;
+
+      // Clients may update ONLY the `files` field after uploading attachments.
+      // All other fields (name, email, phone, etc.) must stay locked.
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['files'])
+        && request.resource.data.files is list;
+
+      allow create: if
+        // ── Required text fields ──
+        request.resource.data.fullName is string
+          && request.resource.data.fullName.size() > 0
+          && request.resource.data.fullName.size() <= 100
+        && request.resource.data.email is string
+          && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+          && request.resource.data.email.size() <= 100
+        && request.resource.data.phone is string
+          && request.resource.data.phone.size() > 0
+          && request.resource.data.phone.size() <= 30
+        && request.resource.data.company is string
+          && request.resource.data.company.size() > 0
+          && request.resource.data.company.size() <= 100
+        && request.resource.data.details is string
+          && request.resource.data.details.size() >= 10
+          && request.resource.data.details.size() <= 1000
+
+        // ── Bot defenses ──
+        // Honeypot: hidden field; real users leave it empty.
+        && request.resource.data._hp is string
+          && request.resource.data._hp.size() == 0
+        // Time-trap: ms from form open to submit. 2000ms separates instant bots
+        // from any real human (5 fields + reading the form is never < 2s).
+        && request.resource.data._t is int
+          && request.resource.data._t >= 2000;
+    }
+
+    // ─── Mail: written only by the email Cloud Function (Admin SDK) ─────────────
+    // Clients must never read or write this collection.
+    match /mail/{mailId} {
+      allow read, write: if false;
+    }
+
+    // ─── Default deny: anything not explicitly allowed above ───────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

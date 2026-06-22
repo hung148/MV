@@ -146,6 +146,12 @@ class Responsive {
   /// Number of columns for material chips
   int get materialGridColumns => isMobile ? 2 : 3;
 
+  double get materialCardWidth => isMobile
+      ? (screenWidth - 16 * 2 - 16) / 2
+      : isTablet
+          ? 280
+          : 350;
+
   double get materialChipAspectRatio => isMobile ? 2.0 : 2.5;
 
   /// Number of columns for industries grid

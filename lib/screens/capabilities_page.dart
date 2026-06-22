@@ -78,9 +78,8 @@ class CapabilitiesPage extends StatelessWidget {
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, child: _buildEquipmentCard(r, title: 'Swiss-Type Lathes', specs: ['Bar capacity: 1.25"', 'Live tooling: 12 positions', 'Sub-spindle capable', 'High-volume production'], icon: Icons.precision_manufacturing)),
-                  ScrollReveal.row(index: 1, child: _buildEquipmentCard(r, title: 'CMM Inspection', specs: ['Measuring volume: 24" x 24" x 16"', 'Accuracy: 0.0001"', 'Contact and optical probing', 'Full dimensional reports'], icon: Icons.straighten)),
-                  ScrollReveal.row(index: 2, child: _buildEquipmentCard(r, title: 'Surface Grinding', specs: ['Capacity: 24" x 12" x 12"', 'Tolerance: ±0.0002"', 'Surface finish: Ra 4', 'Magnetic and vacuum chucks'], icon: Icons.grid_on)),
+                  ScrollReveal.row(index: 0, child: _buildEquipmentCard(r, title: 'CMM Inspection', specs: ['Measuring volume: 24" x 24" x 16"', 'Accuracy: 0.0001"', 'Contact and optical probing', 'Full dimensional reports'], icon: Icons.straighten)),
+                  ScrollReveal.row(index: 1, child: _buildEquipmentCard(r, title: 'Surface Grinding', specs: ['Capacity: 24" x 12" x 12"', 'Tolerance: ±0.0002"', 'Surface finish: Ra 4', 'Magnetic and vacuum chucks'], icon: Icons.grid_on)),
                 ],
               ),
             ],

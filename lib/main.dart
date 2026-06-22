@@ -137,6 +137,10 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
 // ─── Router ───────────────────────────────────────────────────────────────────
 final _router = GoRouter(
   initialLocation: '/',
+  errorBuilder: (context, state) => AppShell(
+    currentRoute: state.uri.path,
+    child: _NotFoundPage(error: state.error),
+  ),
   routes: [
     ShellRoute(
       builder: (context, state, child) {
@@ -167,6 +171,76 @@ final _router = GoRouter(
     ),
   ],
 );
+
+// ─── 404 page ──────────────────────────────────────────────────────────────────
+// Rendered for any URL that doesn't match a route above. Kept inline to avoid
+// a new file for a single screen; matches the site's blue gradient identity.
+class _NotFoundPage extends StatelessWidget {
+  final Exception? error;
+  const _NotFoundPage({this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0d47a1), Color(0xFF1976d2), Color(0xFF42a5f5)],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '404',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 96,
+                  fontWeight: FontWeight.bold,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Page Not Found',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "The page you're looking for doesn't exist or has moved.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFFE3F2FD), fontSize: 16),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () => context.go('/'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF0d47a1),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  elevation: 4,
+                ),
+                child: const Text(
+                  'Back to Home',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class MVWebsite extends StatelessWidget {
   const MVWebsite({super.key});
