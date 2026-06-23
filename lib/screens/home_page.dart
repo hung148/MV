@@ -5,6 +5,8 @@ import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/scroll_reveal.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mv/widgets/footer.dart';
+import 'package:mv/widgets/hover_lift.dart';
+import 'package:mv/widgets/hover_card.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
@@ -91,31 +93,41 @@ class HomePageContent extends StatelessWidget {
                       runSpacing: r.spacingM,
                       alignment: WrapAlignment.center,
                       children: [
-                        ElevatedButton(
-                          onPressed: () => context.go('/capabilities'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFF0d47a1),
-                            padding: r.primaryButtonPadding,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            elevation: 4,
-                          ),
-                          child: Text(
-                            'View Our Capabilities',
-                            style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                        HoverLift(
+                          liftPx: 3,
+                          addShadow: true,
+                          borderRadius: 4,
+                          child: ElevatedButton(
+                            onPressed: () => context.go('/capabilities'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF0d47a1),
+                              padding: r.primaryButtonPadding,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                              elevation: 4,
+                            ),
+                            child: Text(
+                              'View Our Capabilities',
+                              style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
-                        OutlinedButton(
-                          onPressed: () => showQuoteDialog(context),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white, width: 2),
-                            padding: r.primaryButtonPadding,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          ),
-                          child: Text(
-                            'Get a Quote',
-                            style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                        HoverLift(
+                          liftPx: 3,
+                          addShadow: true,
+                          borderRadius: 4,
+                          child: OutlinedButton(
+                            onPressed: () => showQuoteDialog(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white, width: 2),
+                              padding: r.primaryButtonPadding,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            ),
+                            child: Text(
+                              'Get a Quote',
+                              style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
                       ],
@@ -149,7 +161,6 @@ class HomePageContent extends StatelessWidget {
               ),
               SizedBox(height: r.spacingM),
               ScrollReveal(
-                delay: const Duration(milliseconds: 80),
                 child: Text(
                   'Precision machining with a personal touch — every job handled by the owner',
                   style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)),
@@ -162,9 +173,9 @@ class HomePageContent extends StatelessWidget {
                 runSpacing: r.spacingL,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, child: _buildFeatureCard(r, icon: Icons.precision_manufacturing, title: 'Precision Engineering', description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment')),
-                  ScrollReveal.row(index: 1, child: _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times to keep your project moving')),
-                  ScrollReveal.row(index: 2, child: _buildFeatureCard(r, icon: Icons.person, title: 'Owner-Operated', description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality')),
+                  ScrollReveal.row(index: 0, staggerGroup: 'home_features', child: _buildFeatureCard(r, icon: Icons.precision_manufacturing, title: 'Precision Engineering', description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment')),
+                  ScrollReveal.row(index: 1, staggerGroup: 'home_features', child: _buildFeatureCard(r, icon: Icons.speed, title: 'Fast Turnaround', description: 'Quick quotes within 24 hours and rapid production times to keep your project moving')),
+                  ScrollReveal.row(index: 2, staggerGroup: 'home_features', child: _buildFeatureCard(r, icon: Icons.person, title: 'Owner-Operated', description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality')),
                 ],
               ),
             ],
@@ -175,10 +186,10 @@ class HomePageContent extends StatelessWidget {
   }
 
   Widget _buildFeatureCard(Responsive r, {required IconData icon, required String title, required String description}) {
-    return Container(
+    return HoverCard(
       width: r.featureCardWidth,
       padding: EdgeInsets.all(r.cardPadding),
-      decoration: BoxDecoration(
+      baseDecoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(r.cardRadius),
         border: Border.all(color: const Color(0xFFe0e0e0)),
@@ -218,7 +229,6 @@ class HomePageContent extends StatelessWidget {
               ),
               SizedBox(height: r.spacingM),
               ScrollReveal(
-                delay: const Duration(milliseconds: 80),
                 child: Text('Full-service CNC machining from prototype to production run', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
               ),
               SizedBox(height: r.spacingXXL),
@@ -227,9 +237,9 @@ class HomePageContent extends StatelessWidget {
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, child: _buildServiceCard(r, imageIcon: Icons.settings, title: 'CNC Milling', description: '3-axis milling for complex parts and tight tolerances')),
-                  ScrollReveal.row(index: 1, child: _buildServiceCard(r, imageIcon: Icons.science, title: 'Rapid Prototyping', description: 'Fast single-piece and low-volume prototype runs')),
-                  ScrollReveal.row(index: 2, child: _buildServiceCard(r, imageIcon: Icons.factory, title: 'Production Runs', description: 'Consistent quality on repeat orders up to 1,000+ parts/month')),
+                  ScrollReveal.row(index: 0, staggerGroup: 'home_services', child: _buildServiceCard(r, imageIcon: Icons.settings, title: 'CNC Milling', description: '3-axis milling for complex parts and tight tolerances')),
+                  ScrollReveal.row(index: 1, staggerGroup: 'home_services', child: _buildServiceCard(r, imageIcon: Icons.science, title: 'Rapid Prototyping', description: 'Fast single-piece and low-volume prototype runs')),
+                  ScrollReveal.row(index: 2, staggerGroup: 'home_services', child: _buildServiceCard(r, imageIcon: Icons.factory, title: 'Production Runs', description: 'Consistent quality on repeat orders up to 1,000+ parts/month')),
                 ],
               ),
             ],
@@ -240,10 +250,10 @@ class HomePageContent extends StatelessWidget {
   }
 
   Widget _buildServiceCard(Responsive r, {required IconData imageIcon, required String title, required String description}) {
-    return Container(
+    return HoverCard(
       width: r.serviceCardWidth,
       padding: EdgeInsets.all(r.cardPadding),
-      decoration: BoxDecoration(
+      baseDecoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(r.cardRadius),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
@@ -309,12 +319,16 @@ class HomePageContent extends StatelessWidget {
   }
 
   Widget _buildMaterialCard(Responsive r, _MaterialItem material) {
-    return SizedBox(
-      width: r.materialCardWidth,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(r.cardRadius),
-        child: Stack(
-          children: [
+    return HoverLift(
+      liftPx: 6,
+      addShadow: true,
+      borderRadius: r.cardRadius,
+      child: SizedBox(
+        width: r.materialCardWidth,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(r.cardRadius),
+          child: Stack(
+            children: [
             // Image
             AspectRatio(
               aspectRatio: 4 / 3,
@@ -358,7 +372,8 @@ class HomePageContent extends StatelessWidget {
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -382,20 +397,20 @@ class HomePageContent extends StatelessWidget {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: ScrollReveal.row(index: 0, child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing'))),
+                        Expanded(child: ScrollReveal.row(index: 0, staggerGroup: 'home_experience', child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing'))),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: ScrollReveal.row(index: 1, child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist'))),
+                        Expanded(child: ScrollReveal.row(index: 1, staggerGroup: 'home_experience', child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist'))),
                         SizedBox(width: r.spacingXL),
-                        Expanded(child: ScrollReveal.row(index: 2, child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work'))),
+                        Expanded(child: ScrollReveal.row(index: 2, staggerGroup: 'home_experience', child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work'))),
                       ],
                     )
                   : Column(
                       children: [
-                        ScrollReveal.column(index: 0, child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing')),
+                        ScrollReveal.column(index: 0, staggerGroup: 'home_experience', child: _buildExperiencePoint(r, icon: Icons.calendar_today, title: '3+ Years', description: 'Minh has been machining professionally since before opening MV Manufacturing')),
                         SizedBox(height: r.spacingXL),
-                        ScrollReveal.column(index: 1, child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist')),
+                        ScrollReveal.column(index: 1, staggerGroup: 'home_experience', child: _buildExperiencePoint(r, icon: Icons.person, title: 'Owner-Operated', description: 'Every part personally handled by Minh Vu — you deal directly with the machinist')),
                         SizedBox(height: r.spacingXL),
-                        ScrollReveal.column(index: 2, child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work')),
+                        ScrollReveal.column(index: 2, staggerGroup: 'home_experience', child: _buildExperiencePoint(r, icon: Icons.build, title: '2 CNC Machines', description: 'Dedicated CNC turning and milling equipment for precision work')),
                       ],
                     ),
             ],
@@ -480,16 +495,21 @@ class HomePageContent extends StatelessWidget {
                 SizedBox(height: r.spacingM),
                 Text('Send us your drawings and get a quote within 24 hours', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
                 SizedBox(height: r.spacingXL),
-                ElevatedButton(
-                  onPressed: () => showQuoteDialog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0d47a1),
-                    foregroundColor: Colors.white,
-                    padding: r.ctaButtonPadding,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    elevation: 2,
+                HoverLift(
+                  liftPx: 3,
+                  addShadow: true,
+                  borderRadius: 4,
+                  child: ElevatedButton(
+                    onPressed: () => showQuoteDialog(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0d47a1),
+                      foregroundColor: Colors.white,
+                      padding: r.ctaButtonPadding,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      elevation: 2,
+                    ),
+                    child: Text('Request a Quote', style: TextStyle(fontSize: r.buttonTextLarge, fontWeight: FontWeight.bold)),
                   ),
-                  child: Text('Request a Quote', style: TextStyle(fontSize: r.buttonTextLarge, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

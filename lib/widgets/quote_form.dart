@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:mv/models/quote_model.dart';
 import 'package:mv/widgets/contacts.dart';
 import 'package:mv/widgets/styles.dart';
+import 'package:mv/widgets/hover_lift.dart';
 
 /// Call this from any page or widget to open the quote dialog.
 ///
@@ -563,28 +564,33 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
 
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _submit,
-                style: ShopStyles.primaryButton,
-                child: _isLoading
-                    ? const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 22, height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              child: HoverLift(
+                liftPx: 2,
+                addShadow: true,
+                borderRadius: 8,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submit,
+                  style: ShopStyles.primaryButton,
+                  child: _isLoading
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 22, height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 12),
-                          Text('Sending…', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        ],
-                      )
-                    : const Text(
-                        'Send Inquiry',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                            SizedBox(width: 12),
+                            Text('Sending…', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ],
+                        )
+                      : const Text(
+                          'Send Inquiry',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -629,20 +635,25 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
           style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
         const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: _isLoading || _pendingFiles.length >= _maxFileCount ? null : _pickFiles,
-          icon: const Icon(Icons.attach_file, size: 18),
-          label: Text(
-            _pendingFiles.length >= _maxFileCount
-                ? 'Maximum $_maxFileCount files reached'
-                : 'Select Files',
-          ),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: ShopStyles.primaryBlue,
-            side: BorderSide(
-              color: _pendingFiles.length >= _maxFileCount
-                  ? Colors.grey.shade300
-                  : ShopStyles.primaryBlue,
+        HoverLift(
+          liftPx: 2,
+          addShadow: false,
+          borderRadius: 4,
+          child: OutlinedButton.icon(
+            onPressed: _isLoading || _pendingFiles.length >= _maxFileCount ? null : _pickFiles,
+            icon: const Icon(Icons.attach_file, size: 18),
+            label: Text(
+              _pendingFiles.length >= _maxFileCount
+                  ? 'Maximum $_maxFileCount files reached'
+                  : 'Select Files',
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: ShopStyles.primaryBlue,
+              side: BorderSide(
+                color: _pendingFiles.length >= _maxFileCount
+                    ? Colors.grey.shade300
+                    : ShopStyles.primaryBlue,
+              ),
             ),
           ),
         ),

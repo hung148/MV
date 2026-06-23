@@ -4,6 +4,7 @@ import 'package:mv/widgets/footer.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/scroll_reveal.dart';
+import 'package:mv/widgets/hover_lift.dart';
 
 class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
@@ -134,10 +135,14 @@ class _GalleryPageState extends State<GalleryPage> {
               // Cascade left -> right within each visual row, restarting the
               // stagger on each row so a tile in the 2nd/3rd row doesn't have
               // to wait through every prior tile's delay before it can move.
-              final rowPosition = index % r.galleryGridColumns;
-              return ScrollReveal.row(
-                index: rowPosition,
-                child: GestureDetector(
+                  final rowPosition = index % r.galleryGridColumns;
+                  return ScrollReveal.row(
+                    index: rowPosition,
+                    child: HoverLift(
+                      liftPx: 6,
+                      addShadow: true,
+                      borderRadius: r.cardRadius,
+                      child: GestureDetector(
                   onTap: () => _openLightbox(context, index),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(r.cardRadius),
@@ -159,6 +164,7 @@ class _GalleryPageState extends State<GalleryPage> {
                     ),
                   ),
                 ),
+                    ),
               );
             },
           ),
@@ -181,15 +187,20 @@ class _GalleryPageState extends State<GalleryPage> {
                 SizedBox(height: r.spacingM),
                 Text("Let's bring your designs to life with precision manufacturing", style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
                 SizedBox(height: r.spacingL),
-                ElevatedButton(
-                  onPressed: () => showQuoteDialog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF0d47a1),
-                    padding: r.primaryButtonPadding,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                HoverLift(
+                  liftPx: 3,
+                  addShadow: true,
+                  borderRadius: 4,
+                  child: ElevatedButton(
+                    onPressed: () => showQuoteDialog(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF0d47a1),
+                      padding: r.primaryButtonPadding,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: Text('Start Your Project', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
                   ),
-                  child: Text('Start Your Project', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

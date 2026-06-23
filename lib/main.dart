@@ -8,6 +8,7 @@ import 'package:mv/screens/home_page.dart';
 import 'package:mv/screens/services_page.dart';
 import 'package:mv/widgets/navigation_bar.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:go_router/go_router.dart';
 
 void main() async {
@@ -16,6 +17,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   usePathUrlStrategy();
+  // Fire visibility callbacks immediately (default is 500 ms batching which
+  // makes ScrollReveal items pop in late rather than as they enter the view).
+  VisibilityDetectorController.instance.updateInterval = Duration.zero;
   runApp(const MVWebsite());
 }
 
