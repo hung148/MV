@@ -363,71 +363,11 @@ class CustomNavigationBarState extends State<CustomNavigationBar>
   }
 
   Widget _buildLogo() {
-    return InkWell(
-      onTap: () => _navigateTo('/'),
-      child: Row(
-        children: [
-          Image.asset(
-            'assets/logo/MV-Manufacturing.png',
-            width: 100,
-            height: 60,
-            fit: BoxFit.fill,
-          ),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                CompanyContact.name,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                CompanyContact.tagline,
-                style: TextStyle(
-                  color: Color(0xFF999999),
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return _HoverLogo(onTap: () => _navigateTo('/'));
   }
 
-  bool _isCtaHovered = false;
-
   Widget _buildContactButton() {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isCtaHovered = true),
-      onExit: (_) => setState(() => _isCtaHovered = false),
-      child: AnimatedScale(
-        scale: _isCtaHovered ? 1.05 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        child: ElevatedButton(
-          onPressed: () => showQuoteDialog(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0066cc),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-            elevation: _isCtaHovered ? 8 : 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('GET A QUOTE', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-              SizedBox(width: 8),
-              Icon(Icons.arrow_forward_rounded, size: 18),
-            ],
-          ),
-        ),
-      ),
-    );
+    return _NavContactButton(onPressed: () => showQuoteDialog(context));
   }
 
   void _navigateTo(String route) {
@@ -549,6 +489,110 @@ class _MobileNavBarLinkState extends State<_MobileNavBarLink> {
               fontSize: 18,
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Logo with hover opacity ──────────────────────────────────────────────────
+class _HoverLogo extends StatefulWidget {
+  final VoidCallback onTap;
+  const _HoverLogo({required this.onTap});
+
+  @override
+  State<_HoverLogo> createState() => _HoverLogoState();
+}
+
+class _HoverLogoState extends State<_HoverLogo> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isHovered ? 1.03 : 1.0,
+          duration: const Duration(milliseconds: 180),
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/logo/MV-Manufacturing.png',
+                width: 100,
+                height: 60,
+                fit: BoxFit.fill,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 180),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    child: const Text(CompanyContact.name),
+                  ),
+                  const Text(
+                    CompanyContact.tagline,
+                    style: TextStyle(
+                      color: Color(0xFF999999),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── GET A QUOTE button (self-contained hover state) ─────────────────────────
+class _NavContactButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _NavContactButton({required this.onPressed});
+
+  @override
+  State<_NavContactButton> createState() => _NavContactButtonState();
+}
+
+class _NavContactButtonState extends State<_NavContactButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: ElevatedButton(
+          onPressed: widget.onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0066cc),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            elevation: _isHovered ? 8 : 4,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('GET A QUOTE', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              SizedBox(width: 8),
+              Icon(Icons.arrow_forward_rounded, size: 18),
+            ],
           ),
         ),
       ),
