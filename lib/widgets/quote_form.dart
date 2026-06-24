@@ -277,7 +277,16 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
             reader.removeEventListener('loadend', loadEndHandler);
 
             final mime = _mimeTypeFor(safeName) ?? 'application/octet-stream';
-            await ref.putData(bytes, SettableMetadata(contentType: mime));
+            final uploadTask = ref.putData(bytes, SettableMetadata(contentType: mime));
+
+            uploadTask.snapshotEvents.listen((snapshot) {
+              if (!mounted) return;
+              final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+              setState(() => _pendingFiles[i].uploadProgress = progress);
+            });
+
+            await uploadTask;
+            if (mounted) setState(() => _pendingFiles[i].uploadProgress = 1.0);
 
             fileMetas.add({
               'name': safeName,
@@ -309,10 +318,24 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
     } catch (e, stack) {
       debugPrint('🔴 Firestore error: $e\n$stack');
       setState(() {
-        _errorMessage = 'Error: $e';
+        _errorMessage = _friendlyError(e);
         _isLoading    = false;
       });
     }
+  }
+
+  String _friendlyError(Object e) {
+    final raw = e.toString();
+    if (raw.contains('network') || raw.contains('unavailable')) {
+      return 'Network error — please check your connection and try again.';
+    }
+    if (raw.contains('storage') || raw.contains('upload')) {
+      return 'File upload failed. Try removing attachments or using a smaller file.';
+    }
+    if (raw.contains('permission') || raw.contains('unauthorized')) {
+      return 'Submission blocked — please refresh the page and try again.';
+    }
+    return 'Something went wrong. Please try again or call ${CompanyContact.phone}.';
   }
 
   void _showLoadingNotification(BuildContext context) {
@@ -421,7 +444,8 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
         ),
         const SizedBox(height: 12),
         Text(
-          "We've received your request and will be in touch shortly. "
+          "We've received your request and will be in touch at "
+          "${_emailController.text.trim()}. "
           "For urgent inquiries call ${CompanyContact.phone}.",
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
@@ -670,25 +694,50 @@ class _QuoteFormDialogState extends State<QuoteFormDialog> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.blue.shade100),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.description, size: 18, color: ShopStyles.primaryBlue),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        f.name,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          f.uploadProgress == 1.0
+                              ? Icons.check_circle_outline
+                              : Icons.description,
+                          size: 18,
+                          color: f.uploadProgress == 1.0
+                              ? Colors.green.shade600
+                              : ShopStyles.primaryBlue,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            f.name,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(f.sizeLabel, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                        const SizedBox(width: 4),
+                        if (!_isLoading)
+                          InkWell(
+                            onTap: () => _removeFile(i),
+                            child: Icon(Icons.close, size: 16, color: Colors.grey.shade500),
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(f.sizeLabel, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                    const SizedBox(width: 4),
-                    if (!_isLoading)
-                      InkWell(
-                        onTap: () => _removeFile(i),
-                        child: Icon(Icons.close, size: 16, color: Colors.grey.shade500),
+                    if (f.uploadProgress != null && f.uploadProgress! < 1.0) ...[
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: f.uploadProgress,
+                          minHeight: 3,
+                          backgroundColor: Colors.blue.shade100,
+                          valueColor: AlwaysStoppedAnimation<Color>(ShopStyles.primaryBlue),
+                        ),
                       ),
+                    ],
                   ],
                 ),
               ),
@@ -727,6 +776,9 @@ class _PendingFile {
   final web.File? webFile;
   final String name;
   final String sizeLabel;
+
+  /// 0.0–1.0 while uploading, null when idle or complete.
+  double? uploadProgress;
 
   _PendingFile({required this.webFile, required this.name, required this.sizeLabel});
 }
