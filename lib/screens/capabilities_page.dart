@@ -315,18 +315,29 @@ class CapabilitiesPage extends StatelessWidget {
   }
 
   Widget _buildCapacityStat(Responsive r, String value, String label, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, size: r.iconHero, color: const Color(0xFF0d47a1)),
-        SizedBox(height: r.spacingM),
-        AnimatedCounter(
-          end: value,
-          style: TextStyle(fontSize: r.capacityStatFont, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
-          useKShorthand: false, // keep full "1,000+" style here, not "1k+"
-        ),
-        SizedBox(height: r.spacingXS),
-        Text(label, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666)), textAlign: TextAlign.center),
-      ],
+    return HoverCard(
+      padding: EdgeInsets.symmetric(horizontal: r.isMobile ? 24 : 32, vertical: r.isMobile ? 20 : 28),
+      hoverAlpha: 0.08,
+      hoverBlur: 16,
+      liftPx: 4,
+      baseDecoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(r.cardRadius),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: r.iconHero, color: const Color(0xFF0d47a1)),
+          SizedBox(height: r.spacingM),
+          AnimatedCounter(
+            end: value,
+            style: TextStyle(fontSize: r.capacityStatFont, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
+            useKShorthand: false, // keep full "1,000+" style here, not "1k+"
+          ),
+          SizedBox(height: r.spacingXS),
+          Text(label, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666)), textAlign: TextAlign.center),
+        ],
+      ),
     );
   }
 
