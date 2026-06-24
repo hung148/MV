@@ -222,11 +222,13 @@ class _AnimatedCounterState extends State<AnimatedCounter>
         animation: _controller,
         builder: (context, _) {
           final value = num * _controller.value;
-          final display = value >= 1000 && widget.useKShorthand
-              ? (value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)
-              : (decimalPlaces > 0
-                  ? value.toStringAsFixed(decimalPlaces)
-                  : value.round().toString());
+          final display = !widget.useKShorthand
+            ? (decimalPlaces > 0 ? value.toStringAsFixed(decimalPlaces) : value.round().toString())
+            : value >= 1000000
+                ? '${(value / 1000000).toStringAsFixed(value % 1000000 == 0 ? 0 : 1)}M'
+                : value >= 1000
+                    ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
+                    : value.round().toString();
 
           // For integers >= 1000 with useKShorthand=false, add commas so
           // "1,000+" displays as "1,000+" rather than "1000+".
