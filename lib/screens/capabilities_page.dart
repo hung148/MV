@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/fade_in_section.dart';
+import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
@@ -14,7 +15,12 @@ class CapabilitiesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FadeInSection(child: _buildHeroSection(context)),
+        FadeInSection(
+          child: PageHero(
+            title: 'Our Capabilities',
+            subtitle: 'State-of-the-art equipment and expertise to handle your most demanding projects',
+          ),
+        ),
         _buildEquipmentSection(context),
         _buildMaterialsSection(context),
         _buildTolerancesSection(context),
@@ -23,36 +29,6 @@ class CapabilitiesPage extends StatelessWidget {
         _buildCTASection(context),
         const AppFooter(),
       ],
-    );
-  }
-
-  Widget _buildHeroSection(BuildContext context) {
-    final r = Responsive.of(context);
-    return Container(
-      padding: r.heroPadding,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
-        ),
-      ),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: Column(
-            children: [
-              Text('Our Capabilities', style: TextStyle(fontSize: r.displayHeading, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-              SizedBox(height: r.spacingM),
-              Text(
-                'State-of-the-art equipment and expertise to handle your most demanding projects',
-                style: TextStyle(fontSize: r.heroSubHeading, color: Colors.white70),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

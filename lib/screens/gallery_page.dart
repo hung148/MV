@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/footer.dart';
+import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/scroll_reveal.dart';
@@ -81,36 +82,16 @@ class _GalleryPageState extends State<GalleryPage> {
     final r = Responsive.of(context);
     return Column(
       children: [
-        FadeInSection(child: _buildHero(context, r)),
+        FadeInSection(
+          child: PageHero(
+            title: 'Our Work',
+            subtitle: 'Precision machined components across industries',
+          ),
+        ),
         _buildGrid(context, r),
         _buildCTASection(context, r),
         const AppFooter(),
       ],
-    );
-  }
-
-  Widget _buildHero(BuildContext context, Responsive r) {
-    return Container(
-      padding: r.heroPadding,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
-        ),
-      ),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: Column(
-            children: [
-              Text('Our Work', style: TextStyle(fontSize: r.displayHeading, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-              SizedBox(height: r.spacingM),
-              Text('Precision machined components across industries', style: TextStyle(fontSize: r.heroSubHeading, color: Colors.white70), textAlign: TextAlign.center),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

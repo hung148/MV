@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/fade_in_section.dart';
+import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/scroll_reveal.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mv/widgets/footer.dart';
@@ -15,7 +16,7 @@ class HomePageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildHeroSection(context),
+        _buildHero(context),
         _buildFeaturesSection(context),
         _buildServicesSection(context),
         _buildCapabilitiesSection(context),
@@ -27,117 +28,57 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroSection(BuildContext context) {
+  Widget _buildHero(BuildContext context) {
     final r = Responsive.of(context);
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0d47a1), Color(0xFF1976d2), Color(0xFF42a5f5)],
+    return FadeInSection(
+      child: PageHero.home(
+        title: 'Precision CNC Manufacturing',
+        subtitle: 'Your trusted partner for high-quality machining solutions',
+        body: 'From prototype to production — owner-operated, personally inspected, every part.',
+        actions: Wrap(
+          spacing: r.spacingM,
+          runSpacing: r.spacingM,
+          alignment: WrapAlignment.center,
+          children: [
+            HoverLift(
+              liftPx: 3,
+              addShadow: true,
+              borderRadius: 4,
+              child: ElevatedButton(
+                onPressed: () => context.go('/capabilities'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF0d47a1),
+                  padding: r.primaryButtonPadding,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  elevation: 4,
+                ),
+                child: Text(
+                  'View Our Capabilities',
+                  style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            HoverLift(
+              liftPx: 3,
+              addShadow: true,
+              borderRadius: 4,
+              child: OutlinedButton(
+                onPressed: () => showQuoteDialog(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white, width: 2),
+                  padding: r.primaryButtonPadding,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text(
+                  'Get a Quote',
+                  style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.1),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Center(
-            child: FadeInSection(
-              child: Container(
-                padding: r.heroPadding,
-                constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Precision CNC Manufacturing',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: r.displayHeading,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: r.spacingL),
-                    Text(
-                      'Your trusted partner for high-quality machining solutions',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: r.bodyLarge,
-                        fontWeight: FontWeight.w300,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: r.spacingM),
-                    Text(
-                      'From prototype to production — owner-operated, personally inspected, every part.',
-                      style: TextStyle(color: const Color(0xFFE3F2FD), fontSize: r.body + 2),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: r.spacingXL),
-                    Wrap(
-                      spacing: r.spacingM,
-                      runSpacing: r.spacingM,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        HoverLift(
-                          liftPx: 3,
-                          addShadow: true,
-                          borderRadius: 4,
-                          child: ElevatedButton(
-                            onPressed: () => context.go('/capabilities'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF0d47a1),
-                              padding: r.primaryButtonPadding,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                              elevation: 4,
-                            ),
-                            child: Text(
-                              'View Our Capabilities',
-                              style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        HoverLift(
-                          liftPx: 3,
-                          addShadow: true,
-                          borderRadius: 4,
-                          child: OutlinedButton(
-                            onPressed: () => showQuoteDialog(context),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white, width: 2),
-                              padding: r.primaryButtonPadding,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            ),
-                            child: Text(
-                              'Get a Quote',
-                              style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

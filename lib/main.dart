@@ -6,6 +6,7 @@ import 'package:mv/screens/capabilities_page.dart';
 import 'package:mv/screens/gallery_page.dart';
 import 'package:mv/screens/home_page.dart';
 import 'package:mv/screens/services_page.dart';
+import 'package:mv/utils/seo_helper.dart';
 import 'package:mv/widgets/navigation_bar.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -153,23 +154,63 @@ final _router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          pageBuilder: (context, state) => _fadePage(state, const HomePageContent()),
+          pageBuilder: (context, state) {
+            SeoHelper.update(
+              title: 'CNC Precision Machining in Santa Clara, CA | MV Manufacturing LLC',
+              description: 'Owner-operated CNC milling and precision machining in Santa Clara, CA. '
+                  'Fast 24-hour quotes, tolerances to ±0.0005", aerospace and medical parts welcome.',
+              canonicalPath: '/',
+            );
+            return _fadePage(state, const HomePageContent());
+          },
         ),
         GoRoute(
           path: '/services',
-          pageBuilder: (context, state) => _fadePage(state, const ServicesPage()),
+          pageBuilder: (context, state) {
+            SeoHelper.update(
+              title: 'CNC Machining Services — Milling, Prototyping & Production | MV Manufacturing LLC',
+              description: 'CNC milling, rapid prototyping, and production runs for aerospace, medical, '
+                  'and industrial clients. Personal attention on every job by owner Minh Vu.',
+              canonicalPath: '/services',
+            );
+            return _fadePage(state, const ServicesPage());
+          },
         ),
         GoRoute(
           path: '/capabilities',
-          pageBuilder: (context, state) => _fadePage(state, const CapabilitiesPage()),
+          pageBuilder: (context, state) {
+            SeoHelper.update(
+              title: 'CNC Capabilities — Tolerances, Materials & Equipment | MV Manufacturing LLC',
+              description: 'Precision CNC capabilities: tolerances to ±0.0005", aluminum, stainless steel, '
+                  'titanium, brass, copper, and plastics. Located in Santa Clara, CA.',
+              canonicalPath: '/capabilities',
+            );
+            return _fadePage(state, const CapabilitiesPage());
+          },
         ),
         GoRoute(
           path: '/about',
-          pageBuilder: (context, state) => _fadePage(state, const AboutPage()),
+          pageBuilder: (context, state) {
+            SeoHelper.update(
+              title: 'About MV Manufacturing LLC — Owner-Operated CNC Shop in Santa Clara',
+              description: 'Founded in 2025 by master machinist Minh Vu. Every part personally inspected. '
+                  'Serving aerospace, medical, and industrial clients from Santa Clara, CA.',
+              canonicalPath: '/about',
+            );
+            return _fadePage(state, const AboutPage());
+          },
         ),
         GoRoute(
           path: '/gallery',
-          pageBuilder: (context, state) => _fadePage(state, const GalleryPage()),
+          pageBuilder: (context, state) {
+            SeoHelper.update(
+              title: 'Machined Parts Gallery | MV Manufacturing LLC',
+              description: 'Photos of precision CNC machined components produced at MV Manufacturing LLC — '
+                  'aluminum, stainless steel, titanium parts for aerospace, medical, and industrial use.',
+              canonicalPath: '/gallery',
+            );
+            return _fadePage(state, const GalleryPage());
+          },
         ),
       ],
     ),
