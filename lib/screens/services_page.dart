@@ -4,7 +4,6 @@ import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
-import 'package:mv/widgets/scroll_reveal.dart';
 import 'package:mv/widgets/hover_lift.dart';
 import 'package:mv/widgets/hover_card.dart';
 
@@ -40,20 +39,18 @@ class ServicesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('What We Offer', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('What We Offer', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.spacingL,
                 runSpacing: r.spacingL,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, staggerGroup: 'svc_cards', child: _buildDetailedServiceCard(r, icon: Icons.settings, title: 'CNC Milling', description: 'Precision milling services for complex parts', features: ['3-axis capabilities', 'Tolerances to ±0.0005"', 'Prototype to production', 'Personal attention on every job'])),
-                  ScrollReveal.row(index: 1, staggerGroup: 'svc_cards', child: _buildDetailedServiceCard(r, icon: Icons.science, title: 'Rapid Prototyping', description: 'Fast turnaround for prototype development', features: ['Quick quote within 24 hours', 'Single or low-volume runs', 'Design consultation available', 'Material recommendations'])),
-                  ScrollReveal.row(index: 2, staggerGroup: 'svc_cards', child: _buildDetailedServiceCard(r, icon: Icons.factory, title: 'Production Manufacturing', description: 'Consistent quality on every production run', features: ['Low to medium volume capabilities', 'Quality control at every step', 'Just-in-time delivery options', 'Owner-operated precision'])),
-                  ScrollReveal.row(index: 3, staggerGroup: 'svc_cards', child: _buildDetailedServiceCard(r, icon: Icons.precision_manufacturing, title: 'Swiss Machining', description: 'Ultra-precise parts for demanding applications', features: ['Complex geometries', 'Tight tolerances', 'Small diameter work', 'High-volume capability'])),
-                  ScrollReveal.row(index: 4, staggerGroup: 'svc_cards', child: _buildDetailedServiceCard(r, icon: Icons.build_circle, title: 'Assembly Services', description: 'Complete assembly and sub-assembly solutions', features: ['Mechanical assembly', 'Testing and validation', 'Packaging solutions', 'Quality documentation'])),
+                  _buildDetailedServiceCard(r, icon: Icons.settings, title: 'CNC Milling', description: 'Precision milling services for complex parts', features: ['3-axis capabilities', 'Tolerances to ±0.0005\"', 'Prototype to production', 'Personal attention on every job']),
+                  _buildDetailedServiceCard(r, icon: Icons.science, title: 'Rapid Prototyping', description: 'Fast turnaround for prototype development', features: ['Quick quote within 24 hours', 'Single or low-volume runs', 'Design consultation available', 'Material recommendations']),
+                  _buildDetailedServiceCard(r, icon: Icons.factory, title: 'Production Manufacturing', description: 'Consistent quality on every production run', features: ['Low to medium volume capabilities', 'Quality control at every step', 'Just-in-time delivery options', 'Owner-operated precision']),
+                  _buildDetailedServiceCard(r, icon: Icons.precision_manufacturing, title: 'Swiss Machining', description: 'Ultra-precise parts for demanding applications', features: ['Complex geometries', 'Tight tolerances', 'Small diameter work', 'High-volume capability']),
+                  _buildDetailedServiceCard(r, icon: Icons.build_circle, title: 'Assembly Services', description: 'Complete assembly and sub-assembly solutions', features: ['Mechanical assembly', 'Testing and validation', 'Packaging solutions', 'Quality documentation']),
                 ],
               ),
             ],
@@ -119,26 +116,22 @@ class ServicesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Our Process', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Our Process', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingM),
-              ScrollReveal(
-                child: Text('From concept to delivery, we ensure quality at every step', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
-              ),
+              Text('From concept to delivery, we ensure quality at every step', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666)), textAlign: TextAlign.center),
               SizedBox(height: r.spacingXXL),
               r.isDesktop
                   ? Row(
                       children: [
-                        Expanded(child: ScrollReveal.row(index: 0, staggerGroup: 'svc_process', child: _buildProcessStep(r, '1', 'Quote', 'Submit drawings for fast quote'))),
+                        Expanded(child: _buildProcessStep(r, '1', 'Quote', 'Submit drawings for fast quote')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 1, staggerGroup: 'svc_process', child: _buildProcessStep(r, '2', 'Program', 'CAD/CAM programming'))),
+                        Expanded(child: _buildProcessStep(r, '2', 'Program', 'CAD/CAM programming')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 2, staggerGroup: 'svc_process', child: _buildProcessStep(r, '3', 'Machine', 'Precision manufacturing'))),
+                        Expanded(child: _buildProcessStep(r, '3', 'Machine', 'Precision manufacturing')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 3, staggerGroup: 'svc_process', child: _buildProcessStep(r, '4', 'Inspect', 'Quality verification'))),
+                        Expanded(child: _buildProcessStep(r, '4', 'Inspect', 'Quality verification')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 4, staggerGroup: 'svc_process', child: _buildProcessStep(r, '5', 'Deliver', 'On-time shipping'))),
+                        Expanded(child: _buildProcessStep(r, '5', 'Deliver', 'On-time shipping')),
                       ],
                     )
                   : r.isTablet
@@ -147,24 +140,24 @@ class ServicesPage extends StatelessWidget {
                           runSpacing: r.cardSpacing,
                           alignment: WrapAlignment.center,
                           children: [
-                            SizedBox(width: 180, child: ScrollReveal.row(index: 0, staggerGroup: 'svc_process', child: _buildProcessStep(r, '1', 'Quote', 'Submit drawings for fast quote'))),
-                            SizedBox(width: 180, child: ScrollReveal.row(index: 1, staggerGroup: 'svc_process', child: _buildProcessStep(r, '2', 'Program', 'CAD/CAM programming'))),
-                            SizedBox(width: 180, child: ScrollReveal.row(index: 2, staggerGroup: 'svc_process', child: _buildProcessStep(r, '3', 'Machine', 'Precision manufacturing'))),
-                            SizedBox(width: 180, child: ScrollReveal.row(index: 3, staggerGroup: 'svc_process', child: _buildProcessStep(r, '4', 'Inspect', 'Quality verification'))),
-                            SizedBox(width: 180, child: ScrollReveal.row(index: 4, staggerGroup: 'svc_process', child: _buildProcessStep(r, '5', 'Deliver', 'On-time shipping'))),
+                            SizedBox(width: 180, child: _buildProcessStep(r, '1', 'Quote', 'Submit drawings for fast quote')),
+                            SizedBox(width: 180, child: _buildProcessStep(r, '2', 'Program', 'CAD/CAM programming')),
+                            SizedBox(width: 180, child: _buildProcessStep(r, '3', 'Machine', 'Precision manufacturing')),
+                            SizedBox(width: 180, child: _buildProcessStep(r, '4', 'Inspect', 'Quality verification')),
+                            SizedBox(width: 180, child: _buildProcessStep(r, '5', 'Deliver', 'On-time shipping')),
                           ],
                         )
                       : Column(
                           children: [
-                            ScrollReveal.column(index: 0, staggerGroup: 'svc_process', child: _buildProcessStep(r, '1', 'Quote', 'Submit drawings for fast quote')),
+                            _buildProcessStep(r, '1', 'Quote', 'Submit drawings for fast quote'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 1, staggerGroup: 'svc_process', child: _buildProcessStep(r, '2', 'Program', 'CAD/CAM programming')),
+                            _buildProcessStep(r, '2', 'Program', 'CAD/CAM programming'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 2, staggerGroup: 'svc_process', child: _buildProcessStep(r, '3', 'Machine', 'Precision manufacturing')),
+                            _buildProcessStep(r, '3', 'Machine', 'Precision manufacturing'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 3, staggerGroup: 'svc_process', child: _buildProcessStep(r, '4', 'Inspect', 'Quality verification')),
+                            _buildProcessStep(r, '4', 'Inspect', 'Quality verification'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 4, staggerGroup: 'svc_process', child: _buildProcessStep(r, '5', 'Deliver', 'On-time shipping')),
+                            _buildProcessStep(r, '5', 'Deliver', 'On-time shipping'),
                           ],
                         ),
             ],
@@ -209,23 +202,21 @@ class ServicesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Industries We Serve', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Industries We Serve', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.cardSpacing,
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.local_hospital, 'Medical')),
-                  ScrollReveal.row(index: 1, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.flight, 'Aerospace')),
-                  ScrollReveal.row(index: 2, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.directions_car, 'Automotive')),
-                  ScrollReveal.row(index: 3, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.military_tech, 'Defense')),
-                  ScrollReveal.row(index: 4, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.oil_barrel, 'Oil & Gas')),
-                  ScrollReveal.row(index: 5, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.electrical_services, 'Electronics')),
-                  ScrollReveal.row(index: 6, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.precision_manufacturing, 'Industrial')),
-                  ScrollReveal.row(index: 7, staggerGroup: 'svc_industries', child: _buildIndustryCard(r, Icons.energy_savings_leaf, 'Energy')),
+                  _buildIndustryCard(r, Icons.local_hospital, 'Medical'),
+                  _buildIndustryCard(r, Icons.flight, 'Aerospace'),
+                  _buildIndustryCard(r, Icons.directions_car, 'Automotive'),
+                  _buildIndustryCard(r, Icons.military_tech, 'Defense'),
+                  _buildIndustryCard(r, Icons.oil_barrel, 'Oil & Gas'),
+                  _buildIndustryCard(r, Icons.electrical_services, 'Electronics'),
+                  _buildIndustryCard(r, Icons.precision_manufacturing, 'Industrial'),
+                  _buildIndustryCard(r, Icons.energy_savings_leaf, 'Energy'),
                 ],
               ),
             ],
@@ -267,30 +258,28 @@ class ServicesPage extends StatelessWidget {
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: r.maxNarrowWidth),
-          child: ScrollReveal(
-            child: Column(
-              children: [
-                Text('Ready to Start Your Project?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-                SizedBox(height: r.spacingM),
-                Text('Get a free quote within 24 hours', style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
-                SizedBox(height: r.spacingL),
-                HoverLift(
-                  liftPx: 3,
-                  addShadow: true,
-                  borderRadius: 4,
-                  child: ElevatedButton(
-                    onPressed: () => showQuoteDialog(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0d47a1),
-                      padding: r.primaryButtonPadding,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    ),
-                    child: Text('Request a Quote', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
+          child: Column(
+            children: [
+              Text('Ready to Start Your Project?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              SizedBox(height: r.spacingM),
+              Text('Get a free quote within 24 hours', style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
+              SizedBox(height: r.spacingL),
+              HoverLift(
+                liftPx: 3,
+                addShadow: true,
+                borderRadius: 4,
+                child: ElevatedButton(
+                  onPressed: () => showQuoteDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF0d47a1),
+                    padding: r.primaryButtonPadding,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
+                  child: Text('Request a Quote', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

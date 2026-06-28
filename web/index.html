@@ -56,5 +56,26 @@
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore-compat.js"></script>
   <script src="flutter_bootstrap.js" async></script>
+
+  <!--
+    Scoped fix for the home page gallery filmstrip: scrolling it
+    horizontally (trackpad swipe / horizontal wheel) can get caught by the
+    browser as its native "swipe to go back" gesture, which pops the
+    go_router route instead of just scrolling the list. This only happens
+    while the pointer is actually over the filmstrip — the Dart side
+    (_GalleryFilmstripState in home_page.dart) sets
+    window.__galleryFilmstripHovered = true/false on mouse enter/exit, and
+    this listener only intervenes when that flag is true, so every other
+    horizontal scroll/swipe on the rest of the page behaves completely
+    normally.
+  -->
+  <script>
+    window.__galleryFilmstripHovered = false;
+    window.addEventListener('wheel', function (e) {
+      if (e.deltaX !== 0 && window.__galleryFilmstripHovered) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
 </body>
 </html>

@@ -4,8 +4,55 @@ import 'package:mv/widgets/footer.dart';
 import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/responsive.dart';
-import 'package:mv/widgets/scroll_reveal.dart';
 import 'package:mv/widgets/hover_lift.dart';
+
+/// Full set of gallery photos. Shared by the Gallery page grid and the
+/// Home page gallery preview strip so both stay in sync from one source.
+const List<String> kGalleryImages = [
+  'assets/images/gallery/gallery_1.webp',
+  'assets/images/gallery/gallery_2.webp',
+  'assets/images/gallery/gallery_3.webp',
+  'assets/images/gallery/gallery_4.webp',
+  'assets/images/gallery/gallery_5.webp',
+  'assets/images/gallery/gallery_6.webp',
+  'assets/images/gallery/gallery_7.webp',
+  'assets/images/gallery/gallery_8.webp',
+  'assets/images/gallery/gallery_9.webp',
+  'assets/images/gallery/gallery_10.webp',
+  'assets/images/gallery/gallery_11.webp',
+  'assets/images/gallery/gallery_12.webp',
+  'assets/images/gallery/gallery_13.webp',
+  'assets/images/gallery/gallery_14.webp',
+  'assets/images/gallery/gallery_15.webp',
+  'assets/images/gallery/gallery_16.webp',
+  'assets/images/gallery/gallery_17.webp',
+  'assets/images/gallery/gallery_18.webp',
+  'assets/images/gallery/gallery_19.webp',
+  'assets/images/gallery/gallery_20.webp',
+  'assets/images/gallery/gallery_21.webp',
+  'assets/images/gallery/gallery_22.webp',
+  'assets/images/gallery/gallery_23.webp',
+  'assets/images/gallery/gallery_24.webp',
+  'assets/images/gallery/gallery_25.webp',
+  'assets/images/gallery/gallery_26.webp',
+  'assets/images/gallery/gallery_27.webp',
+  'assets/images/gallery/gallery_28.webp',
+  'assets/images/gallery/gallery_29.webp',
+  'assets/images/gallery/gallery_30.webp',
+  'assets/images/gallery/gallery_31.webp',
+  'assets/images/gallery/gallery_32.webp',
+  'assets/images/gallery/gallery_33.webp',
+  'assets/images/gallery/gallery_34.webp',
+  'assets/images/gallery/gallery_35.webp',
+  'assets/images/gallery/gallery_36.webp',
+  'assets/images/gallery/gallery_37.webp',
+  'assets/images/gallery/gallery_38.webp',
+  'assets/images/gallery/gallery_39.webp',
+  'assets/images/gallery/gallery_40.webp',
+  'assets/images/gallery/gallery_41.webp',
+  'assets/images/gallery/gallery_42.webp',
+  'assets/images/gallery/gallery_43.webp',
+];
 
 class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
@@ -15,51 +62,7 @@ class GalleryPage extends StatefulWidget {
 }
 
 class _GalleryPageState extends State<GalleryPage> {
-  final List<String> _images = [
-    'assets/images/gallery/gallery_1.webp',
-    'assets/images/gallery/gallery_2.webp',
-    'assets/images/gallery/gallery_3.webp',
-    'assets/images/gallery/gallery_4.webp',
-    'assets/images/gallery/gallery_5.webp',
-    'assets/images/gallery/gallery_6.webp',
-    'assets/images/gallery/gallery_7.webp',
-    'assets/images/gallery/gallery_8.webp',
-    'assets/images/gallery/gallery_9.webp',
-    'assets/images/gallery/gallery_10.webp',
-    'assets/images/gallery/gallery_11.webp',
-    'assets/images/gallery/gallery_12.webp',
-    'assets/images/gallery/gallery_13.webp',
-    'assets/images/gallery/gallery_14.webp',
-    'assets/images/gallery/gallery_15.webp',
-    'assets/images/gallery/gallery_16.webp',
-    'assets/images/gallery/gallery_17.webp',
-    'assets/images/gallery/gallery_18.webp',
-    'assets/images/gallery/gallery_19.webp',
-    'assets/images/gallery/gallery_20.webp',
-    'assets/images/gallery/gallery_21.webp',
-    'assets/images/gallery/gallery_22.webp',
-    'assets/images/gallery/gallery_23.webp',
-    'assets/images/gallery/gallery_24.webp',
-    'assets/images/gallery/gallery_25.webp',
-    'assets/images/gallery/gallery_26.webp',
-    'assets/images/gallery/gallery_27.webp',
-    'assets/images/gallery/gallery_28.webp',
-    'assets/images/gallery/gallery_29.webp',
-    'assets/images/gallery/gallery_30.webp',
-    'assets/images/gallery/gallery_31.webp',
-    'assets/images/gallery/gallery_32.webp',
-    'assets/images/gallery/gallery_33.webp',
-    'assets/images/gallery/gallery_34.webp',
-    'assets/images/gallery/gallery_35.webp',
-    'assets/images/gallery/gallery_36.webp',
-    'assets/images/gallery/gallery_37.webp',
-    'assets/images/gallery/gallery_38.webp',
-    'assets/images/gallery/gallery_39.webp',
-    'assets/images/gallery/gallery_40.webp',
-    'assets/images/gallery/gallery_41.webp',
-    'assets/images/gallery/gallery_42.webp',
-    'assets/images/gallery/gallery_43.webp',
-  ];
+  final List<String> _images = kGalleryImages;
 
   @override
   void didChangeDependencies() {
@@ -70,11 +73,7 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 
   void _openLightbox(BuildContext context, int startIndex) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black87,
-      builder: (_) => _LightboxDialog(images: _images, initialIndex: startIndex),
-    );
+    openGalleryLightbox(context, _images, startIndex);
   }
 
   @override
@@ -113,17 +112,11 @@ class _GalleryPageState extends State<GalleryPage> {
             ),
             itemCount: _images.length,
             itemBuilder: (context, index) {
-              // Cascade left -> right within each visual row, restarting the
-              // stagger on each row so a tile in the 2nd/3rd row doesn't have
-              // to wait through every prior tile's delay before it can move.
-                  final rowPosition = index % r.galleryGridColumns;
-                  return ScrollReveal.row(
-                    index: rowPosition,
-                    child: HoverLift(
-                      liftPx: 6,
-                      addShadow: true,
-                      borderRadius: r.cardRadius,
-                      child: GestureDetector(
+              return HoverLift(
+                liftPx: 6,
+                addShadow: true,
+                borderRadius: r.cardRadius,
+                child: GestureDetector(
                   onTap: () => _openLightbox(context, index),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(r.cardRadius),
@@ -145,7 +138,6 @@ class _GalleryPageState extends State<GalleryPage> {
                     ),
                   ),
                 ),
-                    ),
               );
             },
           ),
@@ -161,35 +153,44 @@ class _GalleryPageState extends State<GalleryPage> {
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: r.maxNarrowWidth),
-          child: ScrollReveal(
-            child: Column(
-              children: [
-                Text('Ready to See Your Project Here?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-                SizedBox(height: r.spacingM),
-                Text("Let's bring your designs to life with precision manufacturing", style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
-                SizedBox(height: r.spacingL),
-                HoverLift(
-                  liftPx: 3,
-                  addShadow: true,
-                  borderRadius: 4,
-                  child: ElevatedButton(
-                    onPressed: () => showQuoteDialog(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0d47a1),
-                      padding: r.primaryButtonPadding,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    ),
-                    child: Text('Start Your Project', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
+          child: Column(
+            children: [
+              Text('Ready to See Your Project Here?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              SizedBox(height: r.spacingM),
+              Text("Let's bring your designs to life with precision manufacturing", style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
+              SizedBox(height: r.spacingL),
+              HoverLift(
+                liftPx: 3,
+                addShadow: true,
+                borderRadius: 4,
+                child: ElevatedButton(
+                  onPressed: () => showQuoteDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF0d47a1),
+                    padding: r.primaryButtonPadding,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
+                  child: Text('Start Your Project', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+/// Opens the shared lightbox viewer over [images], starting at [initialIndex].
+/// Used by the Gallery page grid and the Home page gallery preview strip so
+/// both share one tap-to-zoom/swipe experience instead of duplicating it.
+void openGalleryLightbox(BuildContext context, List<String> images, int initialIndex) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black87,
+    builder: (_) => _LightboxDialog(images: images, initialIndex: initialIndex),
+  );
 }
 
 // Lightbox dialog with left/right navigation
@@ -249,7 +250,6 @@ class _LightboxDialogState extends State<_LightboxDialog> {
               },
             ),
           ),
-
           if (!isFirst)
             Positioned(
               left: 8,
@@ -258,7 +258,6 @@ class _LightboxDialogState extends State<_LightboxDialog> {
                 onTap: () => _goTo(_currentIndex - 1),
               ),
             ),
-
           if (!isLast)
             Positioned(
               right: 8,
@@ -267,7 +266,6 @@ class _LightboxDialogState extends State<_LightboxDialog> {
                 onTap: () => _goTo(_currentIndex + 1),
               ),
             ),
-
           Positioned(
             top: 8,
             right: 8,
@@ -276,7 +274,6 @@ class _LightboxDialogState extends State<_LightboxDialog> {
               onTap: () => Navigator.pop(context),
             ),
           ),
-
           Positioned(
             bottom: 16,
             child: Container(

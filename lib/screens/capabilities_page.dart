@@ -4,7 +4,6 @@ import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
-import 'package:mv/widgets/scroll_reveal.dart';
 import 'package:mv/widgets/hover_lift.dart';
 import 'package:mv/widgets/hover_card.dart';
 
@@ -42,21 +41,17 @@ class CapabilitiesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Our Equipment', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Our Equipment', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingM),
-              ScrollReveal(
-                child: Text('Advanced CNC machines for precision manufacturing', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666))),
-              ),
+              Text('Advanced CNC machines for precision manufacturing', style: TextStyle(fontSize: r.body + 2, color: const Color(0xFF666666))),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.cardSpacing,
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, staggerGroup: 'cap_equipment', child: _buildEquipmentCard(r, title: 'CMM Inspection', specs: ['Measuring volume: 24" x 24" x 16"', 'Accuracy: 0.0001"', 'Contact and optical probing', 'Full dimensional reports'], icon: Icons.straighten)),
-                  ScrollReveal.row(index: 1, staggerGroup: 'cap_equipment', child: _buildEquipmentCard(r, title: 'Surface Grinding', specs: ['Capacity: 24" x 12" x 12"', 'Tolerance: ±0.0002"', 'Surface finish: Ra 4', 'Magnetic and vacuum chucks'], icon: Icons.grid_on)),
+                  _buildEquipmentCard(r, title: 'CMM Inspection', specs: ['Measuring volume: 24\" x 24\" x 16\"', 'Accuracy: 0.0001\"', 'Contact and optical probing', 'Full dimensional reports'], icon: Icons.straighten),
+                  _buildEquipmentCard(r, title: 'Surface Grinding', specs: ['Capacity: 24\" x 12\" x 12\"', 'Tolerance: ±0.0002\"', 'Surface finish: Ra 4', 'Magnetic and vacuum chucks'], icon: Icons.grid_on),
                 ],
               ),
             ],
@@ -112,18 +107,16 @@ class CapabilitiesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Materials We Machine', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Materials We Machine', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.spacingL,
                 runSpacing: r.spacingL,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, staggerGroup: 'cap_materials', child: _buildMaterialCategory(r, 'Metals', ['Aluminum (all alloys)', 'Stainless Steel (300/400 series)', 'Steel (mild, tool, alloy)', 'Titanium (Grade 2, 5)', 'Brass & Bronze', 'Copper', 'Inconel & Hastelloy'])),
-                  ScrollReveal.row(index: 1, staggerGroup: 'cap_materials', child: _buildMaterialCategory(r, 'Plastics', ['PEEK', 'Delrin (Acetal)', 'Nylon', 'PTFE (Teflon)', 'Polycarbonate', 'UHMW', 'Ultem'])),
-                  ScrollReveal.row(index: 2, staggerGroup: 'cap_materials', child: _buildMaterialCategory(r, 'Specialty Materials', ['Carbon Fiber', 'G10/FR4', 'Ceramics', 'Graphite', 'Exotic alloys', 'Medical-grade materials'])),
+                  _buildMaterialCategory(r, 'Metals', ['Aluminum (all alloys)', 'Stainless Steel (300/400 series)', 'Steel (mild, tool, alloy)', 'Titanium (Grade 2, 5)', 'Brass & Bronze', 'Copper', 'Inconel & Hastelloy']),
+                  _buildMaterialCategory(r, 'Plastics', ['PEEK', 'Delrin (Acetal)', 'Nylon', 'PTFE (Teflon)', 'Polycarbonate', 'UHMW', 'Ultem']),
+                  _buildMaterialCategory(r, 'Specialty Materials', ['Carbon Fiber', 'G10/FR4', 'Ceramics', 'Graphite', 'Exotic alloys', 'Medical-grade materials']),
                 ],
               ),
             ],
@@ -172,20 +165,18 @@ class CapabilitiesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Precision & Tolerances', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Precision & Tolerances', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
               r.isDesktop
                   ? Row(
                       children: [
-                        Expanded(child: ScrollReveal.row(index: 0, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Linear Tolerances', '±0.0005"', 'Standard tight tolerance capability'))),
+                        Expanded(child: _buildToleranceCard(r, 'Linear Tolerances', '±0.0005\"', 'Standard tight tolerance capability')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 1, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Angular Tolerances', '±0.25°', 'Precise angular measurements'))),
+                        Expanded(child: _buildToleranceCard(r, 'Angular Tolerances', '±0.25°', 'Precise angular measurements')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 2, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Surface Finish', 'Ra 4-8 µin', 'Excellent surface quality'))),
+                        Expanded(child: _buildToleranceCard(r, 'Surface Finish', 'Ra 4-8 µin', 'Excellent surface quality')),
                         SizedBox(width: r.cardSpacing),
-                        Expanded(child: ScrollReveal.row(index: 3, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Roundness', '0.0002"', 'Exceptional circularity'))),
+                        Expanded(child: _buildToleranceCard(r, 'Roundness', '0.0002\"', 'Exceptional circularity')),
                       ],
                     )
                   : r.isTablet
@@ -194,21 +185,21 @@ class CapabilitiesPage extends StatelessWidget {
                           runSpacing: r.cardSpacing,
                           alignment: WrapAlignment.center,
                           children: [
-                            SizedBox(width: 220, child: ScrollReveal.row(index: 0, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Linear Tolerances', '±0.0005"', 'Standard tight tolerance capability'))),
-                            SizedBox(width: 220, child: ScrollReveal.row(index: 1, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Angular Tolerances', '±0.25°', 'Precise angular measurements'))),
-                            SizedBox(width: 220, child: ScrollReveal.row(index: 2, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Surface Finish', 'Ra 4-8 µin', 'Excellent surface quality'))),
-                            SizedBox(width: 220, child: ScrollReveal.row(index: 3, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Roundness', '0.0002"', 'Exceptional circularity'))),
+                            SizedBox(width: 220, child: _buildToleranceCard(r, 'Linear Tolerances', '±0.0005\"', 'Standard tight tolerance capability')),
+                            SizedBox(width: 220, child: _buildToleranceCard(r, 'Angular Tolerances', '±0.25°', 'Precise angular measurements')),
+                            SizedBox(width: 220, child: _buildToleranceCard(r, 'Surface Finish', 'Ra 4-8 µin', 'Excellent surface quality')),
+                            SizedBox(width: 220, child: _buildToleranceCard(r, 'Roundness', '0.0002\"', 'Exceptional circularity')),
                           ],
                         )
                       : Column(
                           children: [
-                            ScrollReveal.column(index: 0, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Linear Tolerances', '±0.0005"', 'Standard tight tolerance capability')),
+                            _buildToleranceCard(r, 'Linear Tolerances', '±0.0005\"', 'Standard tight tolerance capability'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 1, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Angular Tolerances', '±0.25°', 'Precise angular measurements')),
+                            _buildToleranceCard(r, 'Angular Tolerances', '±0.25°', 'Precise angular measurements'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 2, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Surface Finish', 'Ra 4-8 µin', 'Excellent surface quality')),
+                            _buildToleranceCard(r, 'Surface Finish', 'Ra 4-8 µin', 'Excellent surface quality'),
                             SizedBox(height: r.cardSpacing),
-                            ScrollReveal.column(index: 3, staggerGroup: 'cap_tolerances', child: _buildToleranceCard(r, 'Roundness', '0.0002"', 'Exceptional circularity')),
+                            _buildToleranceCard(r, 'Roundness', '0.0002\"', 'Exceptional circularity'),
                           ],
                         ),
             ],
@@ -219,11 +210,7 @@ class CapabilitiesPage extends StatelessWidget {
   }
 
   Widget _buildToleranceCard(Responsive r, String title, String value, String description) {
-    // Range values like "Ra 4-8 µin" don't animate cleanly as a single
-    // counter, so they stay as plain text. Everything else (scalars with
-    // optional prefix/suffix like "±0.0005\"" or "0.0002"") animates.
     final hasRange = RegExp(r'\d-\d').hasMatch(value);
-
     return HoverCard(
       padding: EdgeInsets.all(r.isMobile ? 16 : 24),
       hoverAlpha: 0.18,
@@ -258,18 +245,16 @@ class CapabilitiesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Production Capacity', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Production Capacity', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
               r.isDesktop
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        ScrollReveal.row(index: 0, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory)),
-                        ScrollReveal.row(index: 1, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, '1,000+', 'Parts/Month', Icons.speed)),
-                        ScrollReveal.row(index: 2, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, '24hr', 'Quote Turnaround', Icons.access_time)),
-                        ScrollReveal.row(index: 3, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing)),
+                        _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory),
+                        _buildCapacityStat(r, '1,000+', 'Parts/Month', Icons.speed),
+                        _buildCapacityStat(r, '24hr', 'Quote Turnaround', Icons.access_time),
+                        _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing),
                       ],
                     )
                   : Wrap(
@@ -277,10 +262,10 @@ class CapabilitiesPage extends StatelessWidget {
                       runSpacing: r.spacingXL,
                       alignment: WrapAlignment.center,
                       children: [
-                        ScrollReveal.row(index: 0, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory)),
-                        ScrollReveal.row(index: 1, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, '1,000+', 'Parts/Month', Icons.speed)),
-                        ScrollReveal.row(index: 2, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, '24hr', 'Quote Turnaround', Icons.access_time)),
-                        ScrollReveal.row(index: 3, staggerGroup: 'cap_capacity', child: _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing)),
+                        _buildCapacityStat(r, 'Prototype', 'to Production', Icons.inventory),
+                        _buildCapacityStat(r, '1,000+', 'Parts/Month', Icons.speed),
+                        _buildCapacityStat(r, '24hr', 'Quote Turnaround', Icons.access_time),
+                        _buildCapacityStat(r, '2', 'CNC Machines', Icons.precision_manufacturing),
                       ],
                     ),
             ],
@@ -308,7 +293,7 @@ class CapabilitiesPage extends StatelessWidget {
           AnimatedCounter(
             end: value,
             style: TextStyle(fontSize: r.capacityStatFont, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)),
-            useKShorthand: false, // keep full "1,000+" style here, not "1k+"
+            useKShorthand: false,
           ),
           SizedBox(height: r.spacingXS),
           Text(label, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666)), textAlign: TextAlign.center),
@@ -327,19 +312,17 @@ class CapabilitiesPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
           child: Column(
             children: [
-              ScrollReveal(
-                child: Text('Certifications & Quality', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
-              ),
+              Text('Certifications & Quality', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
               Wrap(
                 spacing: r.cardSpacing,
                 runSpacing: r.cardSpacing,
                 alignment: WrapAlignment.center,
                 children: [
-                  ScrollReveal.row(index: 0, staggerGroup: 'cap_certs', child: _buildCertCard(r, 'AS9100D', 'Aerospace Quality')),
-                  ScrollReveal.row(index: 1, staggerGroup: 'cap_certs', child: _buildCertCard(r, 'ITAR Registered', 'Defense Compliance')),
-                  ScrollReveal.row(index: 2, staggerGroup: 'cap_certs', child: _buildCertCard(r, 'PPAP Level 3', 'Automotive Standards')),
-                  ScrollReveal.row(index: 3, staggerGroup: 'cap_certs', child: _buildCertCard(r, 'RoHS Compliant', 'Environmental Standards')),
+                  _buildCertCard(r, 'AS9100D', 'Aerospace Quality'),
+                  _buildCertCard(r, 'ITAR Registered', 'Defense Compliance'),
+                  _buildCertCard(r, 'PPAP Level 3', 'Automotive Standards'),
+                  _buildCertCard(r, 'RoHS Compliant', 'Environmental Standards'),
                 ],
               ),
             ],
@@ -382,30 +365,28 @@ class CapabilitiesPage extends StatelessWidget {
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: r.maxNarrowWidth),
-          child: ScrollReveal(
-            child: Column(
-              children: [
-                Text('Put Our Capabilities to Work', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
-                SizedBox(height: r.spacingM),
-                Text('Let us handle your most challenging manufacturing projects', style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
-                SizedBox(height: r.spacingL),
-                HoverLift(
-                  liftPx: 3,
-                  addShadow: true,
-                  borderRadius: 4,
-                  child: ElevatedButton(
-                    onPressed: () => showQuoteDialog(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0d47a1),
-                      padding: r.primaryButtonPadding,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    ),
-                    child: Text('Get Started', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
+          child: Column(
+            children: [
+              Text('Put Our Capabilities to Work', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              SizedBox(height: r.spacingM),
+              Text('Let us handle your most challenging manufacturing projects', style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
+              SizedBox(height: r.spacingL),
+              HoverLift(
+                liftPx: 3,
+                addShadow: true,
+                borderRadius: 4,
+                child: ElevatedButton(
+                  onPressed: () => showQuoteDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF0d47a1),
+                    padding: r.primaryButtonPadding,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
+                  child: Text('Get Started', style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold)),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

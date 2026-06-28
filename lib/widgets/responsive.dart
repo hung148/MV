@@ -130,11 +130,18 @@ class Responsive {
   double get cardSpacing => isMobile ? 16 : isTablet ? 20 : 24;
   double get cardRadius  => 8;
 
-  /// Feature card width (null = fill in Wrap)
-  double? get featureCardWidth => isDesktop ? 350 : null;
+  /// Feature card width — explicit at every breakpoint so all cards in the
+  /// Wrap are always the same size, instead of shrink-wrapping to whichever
+  /// card's text happens to be longest (which is what a null width causes).
+  /// Mobile uses the same horizontal inset (16px each side) as
+  /// [sectionPadding], since these cards stack one-per-row there.
+  double get featureCardWidth =>
+      isMobile ? screenWidth - 16 * 2 : isTablet ? 320 : 350;
 
-  /// Service card width (home page compact cards)
-  double? get serviceCardWidth => isDesktop ? 280 : isTablet ? 300 : null;
+  /// Service card width (home page compact cards) — same reasoning as
+  /// [featureCardWidth] above: always explicit, never content-sized.
+  double get serviceCardWidth =>
+      isMobile ? screenWidth - 16 * 2 : isTablet ? 300 : 280;
 
   double get serviceCardHeight => isMobile ? 230 : 260;
 
@@ -203,6 +210,11 @@ class Responsive {
 
   /// Icon size inside gallery image placeholder
   double get galleryImageIcon => isMobile ? 60 : 80;
+
+  /// Home-page gallery preview strip — base thumbnail tile size (square).
+  /// The centered tile scales up from this at render time; see
+  /// _GalleryFilmstrip in home_page.dart for the focal-point scaling.
+  double get galleryPreviewTileSize => isMobile ? 160 : isTablet ? 200 : 240;
 
   /// Filter chip horizontal/vertical padding
   EdgeInsets get filterChipPadding => EdgeInsets.symmetric(
