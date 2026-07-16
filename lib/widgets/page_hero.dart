@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:mv/widgets/responsive.dart';
 
 /// Shared hero banner used on every inner page (Services, Capabilities, About,
@@ -11,13 +12,19 @@ import 'package:mv/widgets/responsive.dart';
 ///   )
 ///
 /// Home-page variant (diagonal tri-colour gradient + dark overlay + extra
-/// content below the subtitle):
+/// content below the subtitle), now with optional background image or video:
 ///   PageHero.home(
 ///     title: 'Precision CNC Manufacturing',
 ///     subtitle: 'Your trusted partner …',
 ///     body: 'From prototype to production …',   // optional third line
 ///     actions: Row(children: […]),               // buttons etc.
+///     backgroundImage: 'assets/images/home_hero_bg.webp', // optional
+///     backgroundVideo: 'assets/videos/home_hero_bg.mp4',  // optional
 ///   )
+///
+/// If both [backgroundImage] and [backgroundVideo] are provided, the video
+/// takes priority and the image is ignored. If neither is provided, the
+/// original tri-colour gradient is used.
 ///
 /// The caller is responsible for wrapping with FadeInSection when needed —
 /// this widget has no opinion about animation.
@@ -27,7 +34,8 @@ class PageHero extends StatelessWidget {
   final String subtitle;
 
   // ─── home-variant fields ─────────────────────────────────────────────────
-  /// When true, uses the 3-colour diagonal gradient + dark scrim overlay.
+  /// When true, uses the 3-colour diagonal gradient + dark scrim overlay
+  /// (or the background image/video, if provided).
   final bool _isHome;
 
   /// Optional third line of body text rendered below [subtitle].
@@ -36,6 +44,13 @@ class PageHero extends StatelessWidget {
   /// Optional widget row (buttons, chips, etc.) rendered below [body].
   final Widget? actions;
 
+  /// Optional static background image asset path (home variant only).
+  final String? backgroundImage;
+
+  /// Optional looping, muted background video asset path (home variant only).
+  /// Takes priority over [backgroundImage] if both are set.
+  final String? backgroundVideo;
+
   // ─── Standard constructor ─────────────────────────────────────────────────
   const PageHero({
     super.key,
@@ -43,7 +58,9 @@ class PageHero extends StatelessWidget {
     required this.subtitle,
   })  : _isHome = false,
         body = null,
-        actions = null;
+        actions = null,
+        backgroundImage = null,
+        backgroundVideo = null;
 
   // ─── Home constructor ─────────────────────────────────────────────────────
   const PageHero.home({
@@ -52,6 +69,8 @@ class PageHero extends StatelessWidget {
     required this.subtitle,
     this.body,
     this.actions,
+    this.backgroundImage,
+    this.backgroundVideo,
   }) : _isHome = true;
 
   @override
@@ -98,19 +117,34 @@ class PageHero extends StatelessWidget {
     );
   }
 
-  // ── Home hero (diagonal gradient + dark scrim + extra content) ────────────
+  // ── Home hero (diagonal gradient / image / video + dark scrim) ────────────
   Widget _buildHomeHero(BuildContext context) {
     final r = Responsive.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0d47a1), Color(0xFF1976d2), Color(0xFF42a5f5)],
-        ),
-      ),
+      decoration: (backgroundVideo == null && backgroundImage == null)
+          ? const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0d47a1), Color(0xFF1976d2), Color(0xFF42a5f5)],
+              ),
+            )
+          : null,
       child: Stack(
         children: [
+          // Background layer: video > image > (nothing, gradient already set)
+          if (backgroundVideo != null)
+            Positioned.fill(
+              child: _HeroBackgroundVideo(assetPath: backgroundVideo!),
+            )
+          else if (backgroundImage != null)
+            Positioned.fill(
+              child: Image.asset(
+                backgroundImage!,
+                fit: BoxFit.cover,
+              ),
+            ),
+
           // Dark scrim overlay
           Positioned.fill(
             child: Container(
@@ -119,8 +153,12 @@ class PageHero extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(
+                      alpha: (backgroundVideo != null || backgroundImage != null) ? 0.3 : 0.3,
+                    ),
+                    Colors.black.withValues(
+                      alpha: (backgroundVideo != null || backgroundImage != null) ? 0.15 : 0.1,
+                    ),
                   ],
                 ),
               ),
@@ -171,6 +209,60 @@ class PageHero extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Internal stateful widget that owns the [VideoPlayerController] lifecycle
+/// for a looping, muted, autoplaying background video.
+class _HeroBackgroundVideo extends StatefulWidget {
+  final String assetPath;
+
+  const _HeroBackgroundVideo({required this.assetPath});
+
+  @override
+  State<_HeroBackgroundVideo> createState() => _HeroBackgroundVideoState();
+}
+
+class _HeroBackgroundVideoState extends State<_HeroBackgroundVideo> {
+  late final VideoPlayerController _controller;
+  bool _disposed = false;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset(widget.assetPath)
+      ..setLooping(true)
+      ..setVolume(0)
+      ..initialize().then((_) {
+        if (_disposed) return;
+        setState(() => _ready = true);
+        _controller.play();
+      });
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      // Solid fallback color while the video loads, so there's no flash of
+      // empty/white space.
+      return Container(color: const Color(0xFF0d47a1));
+    }
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: _controller.value.size.width,
+        height: _controller.value.size.height,
+        child: VideoPlayer(_controller),
       ),
     );
   }

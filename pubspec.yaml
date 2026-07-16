@@ -44,6 +44,7 @@ dependencies:
   url_launcher: ^6.3.2
   visibility_detector: ^0.4.0+2
   web: ^1.1.1
+  video_player: ^2.13.0
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +83,7 @@ flutter:
     - assets/icon/MV-Manufacturing_icon.png
     - assets/images/gallery/
     - assets/images/home_images/
+    - assets/videos/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

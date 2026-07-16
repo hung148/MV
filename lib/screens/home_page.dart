@@ -38,6 +38,7 @@ class HomePageContent extends StatelessWidget {
       child: PageHero.home(
         title: 'Precision CNC Manufacturing',
         subtitle: 'Your trusted partner for high-quality machining solutions',
+        backgroundVideo: 'assets/videos/home_hero_bg.mp4',
         body: 'From prototype to production — owner-operated, personally inspected, every part.',
         actions: Wrap(
           spacing: r.spacingM,
