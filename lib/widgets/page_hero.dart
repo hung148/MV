@@ -44,23 +44,31 @@ class PageHero extends StatelessWidget {
   /// Optional widget row (buttons, chips, etc.) rendered below [body].
   final Widget? actions;
 
-  /// Optional static background image asset path (home variant only).
+  /// Optional static background image asset path.
   final String? backgroundImage;
 
-  /// Optional looping, muted background video asset path (home variant only).
+  /// Optional looping, muted background video asset path.
   /// Takes priority over [backgroundImage] if both are set.
   final String? backgroundVideo;
+
+  /// Minimum hero height. Defaults to 70% of the viewport height so inner
+  /// pages (Services/Capabilities/About/Gallery) visually match the Home
+  /// hero's scale instead of shrink-wrapping to just the title/subtitle.
+  /// Pass a smaller value (or null to disable) if you want the old
+  /// content-sized behavior on a specific page.
+  final double? minHeight;
 
   // ─── Standard constructor ─────────────────────────────────────────────────
   const PageHero({
     super.key,
     required this.title,
     required this.subtitle,
+    this.backgroundImage,
+    this.backgroundVideo,
+    this.minHeight = double.infinity, // sentinel meaning "use default viewport ratio"
   })  : _isHome = false,
         body = null,
-        actions = null,
-        backgroundImage = null,
-        backgroundVideo = null;
+        actions = null;
 
   // ─── Home constructor ─────────────────────────────────────────────────────
   const PageHero.home({
@@ -71,7 +79,31 @@ class PageHero extends StatelessWidget {
     this.actions,
     this.backgroundImage,
     this.backgroundVideo,
+    this.minHeight = double.infinity,
   }) : _isHome = true;
+
+  double _resolvedMinHeight(BuildContext context) {
+    if (minHeight == null) return 0;
+    if (minHeight!.isFinite) return minHeight!;
+
+    final size = MediaQuery.sizeOf(context);
+    final width = size.width;
+
+    // Smaller windows get a smaller share of the viewport height, since a
+    // 70%-tall hero looks great on desktop but overwhelming on mobile/tablet.
+    double ratio;
+    if (width < 600) {
+      ratio = 0.4; // mobile
+    } else if (width < 1024) {
+      ratio = 0.55; // tablet
+    } else {
+      ratio = 0.7; // desktop
+    }
+
+    // Clamp so it never gets too cramped (tiny phones) or absurdly tall
+    // (very short/wide desktop windows).
+    return (size.height * ratio).clamp(320.0, 800.0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,38 +113,80 @@ class PageHero extends StatelessWidget {
   // ── Inner-page hero (Services / Capabilities / About / Gallery) ───────────
   Widget _buildPageHero(BuildContext context) {
     final r = Responsive.of(context);
+    final hasMedia = backgroundVideo != null || backgroundImage != null;
+
     return Container(
-      padding: r.heroPadding,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
-        ),
-      ),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: Column(
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: r.displayHeading,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+      constraints: BoxConstraints(minHeight: _resolvedMinHeight(context)),
+      decoration: hasMedia
+          ? null
+          : const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
+              ),
+            ),
+      child: Stack(
+        children: [
+          // Background layer: video > image > (nothing, gradient already set)
+          if (backgroundVideo != null)
+            Positioned.fill(
+              child: _HeroBackgroundVideo(assetPath: backgroundVideo!),
+            )
+          else if (backgroundImage != null)
+            Positioned.fill(
+              child: Image.asset(
+                backgroundImage!,
+                fit: BoxFit.cover,
+              ),
+            ),
+
+          // Dark scrim overlay (only needed when there's media behind the text)
+          if (hasMedia)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.3),
+                      Colors.black.withValues(alpha: 0.15),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
-              SizedBox(height: r.spacingM),
-              Text(
-                subtitle,
-                style: TextStyle(fontSize: r.heroSubHeading, color: Colors.white70),
-                textAlign: TextAlign.center,
+            ),
+
+          // Content
+          Padding(
+            padding: r.heroPadding,
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: r.maxContentWidth),
+                child: Column(
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: r.displayHeading,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: r.spacingM),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: r.heroSubHeading, color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -121,6 +195,7 @@ class PageHero extends StatelessWidget {
   Widget _buildHomeHero(BuildContext context) {
     final r = Responsive.of(context);
     return Container(
+      constraints: BoxConstraints(minHeight: _resolvedMinHeight(context)),
       decoration: (backgroundVideo == null && backgroundImage == null)
           ? const BoxDecoration(
               gradient: LinearGradient(

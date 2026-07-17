@@ -18,6 +18,7 @@ class ServicesPage extends StatelessWidget {
           child: PageHero(
             title: 'Our Services',
             subtitle: 'Comprehensive CNC machining solutions for all your manufacturing needs',
+            backgroundVideo: 'assets/videos/services_hero_bg.mp4',
           ),
         ),
         _buildServicesGrid(context),
