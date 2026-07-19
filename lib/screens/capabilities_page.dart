@@ -18,6 +18,7 @@ class CapabilitiesPage extends StatelessWidget {
           child: PageHero(
             title: 'Our Capabilities',
             subtitle: 'State-of-the-art equipment and expertise to handle your most demanding projects',
+            backgroundVideo: 'assets/videos/capabilities_hero_bg.mp4',
           ),
         ),
         _buildEquipmentSection(context),
