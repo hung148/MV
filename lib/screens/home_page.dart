@@ -118,6 +118,7 @@ class HomePageContent extends StatelessWidget {
                 description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment.',
                 badge: 'Our Specialty',
                 reverse: false,
+                imagePath: 'assets/images/home_images/precision_engineering.webp',
               ),
               SizedBox(height: r.spacingXXL),
               _buildWhyDivider(),
@@ -128,6 +129,7 @@ class HomePageContent extends StatelessWidget {
                 title: 'Fast Turnaround',
                 description: 'Quick quotes within 24 hours and rapid production times to keep your project moving.',
                 reverse: true,
+                imagePath: 'assets/images/home_images/fast_turnaround.webp',
               ),
               SizedBox(height: r.spacingXXL),
               _buildWhyDivider(),
@@ -138,6 +140,7 @@ class HomePageContent extends StatelessWidget {
                 title: 'Owner-Operated',
                 description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality.',
                 reverse: false,
+                imagePath: 'assets/images/home_images/owner_operated.webp',
               ),
             ],
           ),
@@ -185,6 +188,7 @@ class HomePageContent extends StatelessWidget {
     required String description,
     String? badge,
     required bool reverse,
+    String? imagePath,
   }) {
     final textBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,21 +219,54 @@ class HomePageContent extends StatelessWidget {
       ],
     );
 
+    // The tile shows a background photo when [imagePath] is given, with
+    // a diagonal gradient scrim over it (dark navy at the bottom-right,
+    // lighter at the top-left) so the icon stays legible regardless of
+    // what's in the photo. A translucent circular chip sits behind the
+    // icon itself as a second layer of contrast for busier images. With
+    // no [imagePath], it falls back to the original flat gradient tile.
     final iconTile = Container(
       width: r.iconHero * 2.5,
       height: r.iconHero * 2.5,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
-        ),
         borderRadius: BorderRadius.circular(r.cardRadius * 1.5),
         boxShadow: [
           BoxShadow(color: const Color(0xFF0d47a1).withValues(alpha: 0.25), blurRadius: 24, offset: const Offset(0, 10)),
         ],
       ),
-      child: Icon(icon, size: r.iconHero * 1.3, color: Colors.white),
+      child: imagePath == null
+          ? Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
+                ),
+              ),
+              child: Icon(icon, size: r.iconHero * 1.3, color: Colors.white),
+            )
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(imagePath, fit: BoxFit.cover),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.1),
+                        const Color(0xFF0d47a1).withValues(alpha: 0.55),
+                      ],
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Icon(icon, size: r.iconHero * 0.9, color: Colors.white),
+                ),
+              ],
+            ),
     );
 
     return LayoutBuilder(
