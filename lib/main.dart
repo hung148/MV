@@ -180,7 +180,7 @@ final _router = GoRouter(
             SeoHelper.update(
               title: 'CNC Capabilities — Tolerances, Materials & Equipment | MV Manufacturing LLC',
               description: 'Precision CNC capabilities: tolerances to ±0.0005", aluminum, stainless steel, '
-                  'titanium, brass, copper, and plastics. Located in Santa Clara, CA.',
+                  'brass, copper, and plastics. Located in Santa Clara, CA.',
               canonicalPath: '/capabilities',
             );
             return _fadePage(state, const CapabilitiesPage());
@@ -204,7 +204,7 @@ final _router = GoRouter(
             SeoHelper.update(
               title: 'Machined Parts Gallery | MV Manufacturing LLC',
               description: 'Photos of precision CNC machined components produced at MV Manufacturing LLC — '
-                  'aluminum, stainless steel, titanium parts for aerospace, medical, and industrial use.',
+                  'aluminum and stainless steel parts for aerospace, medical, and industrial use.',
               canonicalPath: '/gallery',
             );
             return _fadePage(state, const GalleryPage());

@@ -6,7 +6,6 @@ import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/page_hero.dart';
-import 'package:mv/widgets/hub_spoke_layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mv/widgets/footer.dart';
 import 'package:mv/widgets/hover_lift.dart';
@@ -92,26 +91,6 @@ class HomePageContent extends StatelessWidget {
   Widget _buildFeaturesSection(BuildContext context) {
     final r = Responsive.of(context);
 
-    final precisionCard = _buildFeaturedCard(
-      r,
-      icon: Icons.precision_manufacturing,
-      title: 'Precision Engineering',
-      description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment',
-      badge: 'Our Specialty',
-    );
-    final speedCard = _buildFeatureCard(
-      r,
-      icon: Icons.speed,
-      title: 'Fast Turnaround',
-      description: 'Quick quotes within 24 hours and rapid production times to keep your project moving',
-    );
-    final ownerCard = _buildFeatureCard(
-      r,
-      icon: Icons.person,
-      title: 'Owner-Operated',
-      description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality',
-    );
-
     return Container(
       padding: r.sectionPadding,
       color: Colors.white,
@@ -132,15 +111,33 @@ class HomePageContent extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: r.spacingXXL),
-              Center(
-                child: HubSpokeLayout(
-                  cardWidth: r.featureCardWidth,
-                  horizontalGap: r.spacingXL,
-                  verticalGap: r.spacingXXL,
-                  topCard: precisionCard,
-                  leftCard: speedCard,
-                  rightCard: ownerCard,
-                ),
+              _buildWhyRow(
+                r,
+                icon: Icons.precision_manufacturing,
+                title: 'Precision Engineering',
+                description: 'Tolerances down to ±0.0005" with state-of-the-art CNC equipment.',
+                badge: 'Our Specialty',
+                reverse: false,
+              ),
+              SizedBox(height: r.spacingXXL),
+              _buildWhyDivider(),
+              SizedBox(height: r.spacingXXL),
+              _buildWhyRow(
+                r,
+                icon: Icons.speed,
+                title: 'Fast Turnaround',
+                description: 'Quick quotes within 24 hours and rapid production times to keep your project moving.',
+                reverse: true,
+              ),
+              SizedBox(height: r.spacingXXL),
+              _buildWhyDivider(),
+              SizedBox(height: r.spacingXXL),
+              _buildWhyRow(
+                r,
+                icon: Icons.person,
+                title: 'Owner-Operated',
+                description: 'Minh personally oversees every job — no handoffs, no shortcuts, just consistent quality.',
+                reverse: false,
               ),
             ],
           ),
@@ -149,55 +146,51 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(Responsive r, {required IconData icon, required String title, required String description}) {
-    return HoverCard(
-      width: r.featureCardWidth,
-      padding: EdgeInsets.all(r.cardPadding),
-      baseDecoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(r.cardRadius),
-        border: Border.all(color: const Color(0xFFe0e0e0)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(r.spacingM),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0d47a1).withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: Icon(icon, size: r.iconLarge, color: const Color(0xFF0d47a1)),
+  /// One row of the "Why MV Manufacturing LLC?" section: a text block
+  /// (title + description, with an optional small badge pill above the
+  /// title) alongside a large gradient icon tile — matching the
+  /// alternating-sides layout of the reference design, but with an icon
+  /// standing in for the oversized step number.
+  ///
+  /// [reverse] puts the icon tile on the left and the text on the right;
+  /// otherwise the icon sits on the right. Below ~640px available width
+  /// this collapses to a single stacked column (text first, then the
+  /// icon tile centered underneath) regardless of [reverse], since
+  /// alternating sides stops being legible on a narrow phone screen.
+  /// Thin divider used between each "Why MV Manufacturing LLC?" row — a
+  /// light full-width line with a short brand-blue accent tick centered
+  /// on top of it, so it reads as a deliberate section break rather
+  /// than a plain default HR.
+  Widget _buildWhyDivider() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(height: 1, color: const Color(0xFFe5e5e5)),
+        Container(
+          width: 48,
+          height: 3,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0d47a1),
+            borderRadius: BorderRadius.circular(2),
           ),
-          SizedBox(height: r.spacingM),
-          Text(title, style: TextStyle(fontSize: r.heading3, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
-          SizedBox(height: r.spacingS),
-          Text(description, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666), height: 1.6), textAlign: TextAlign.center),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  /// Featured variant used for the hub's top card — a gradient icon badge,
-  /// blue-tinted border with a soft glow, and a small pill label above the
-  /// title, so it visually reads as "the hub" rather than a fourth
-  /// identical card next to its two spokes.
-  Widget _buildFeaturedCard(Responsive r, {required IconData icon, required String title, required String description, required String badge}) {
-    return HoverCard(
-      width: r.featureCardWidth,
-      padding: EdgeInsets.all(r.cardPadding),
-      baseDecoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(r.cardRadius),
-        border: Border.all(color: const Color(0xFF0d47a1), width: 1.5),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF0d47a1).withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 6)),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+  Widget _buildWhyRow(
+    Responsive r, {
+    required IconData icon,
+    required String title,
+    required String description,
+    String? badge,
+    required bool reverse,
+  }) {
+    final textBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (badge != null) ...[
           Container(
             padding: EdgeInsets.symmetric(horizontal: r.spacingM, vertical: r.spacingXS / 2),
             decoration: BoxDecoration(
@@ -214,28 +207,63 @@ class HomePageContent extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: r.spacingM),
-          Container(
-            padding: EdgeInsets.all(r.spacingM),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
-              ),
-              borderRadius: BorderRadius.circular(50),
-              boxShadow: [
-                BoxShadow(color: const Color(0xFF0d47a1).withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
-              ],
-            ),
-            child: Icon(icon, size: r.iconLarge, color: Colors.white),
-          ),
-          SizedBox(height: r.spacingM),
-          Text(title, style: TextStyle(fontSize: r.heading3, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a)), textAlign: TextAlign.center),
           SizedBox(height: r.spacingS),
-          Text(description, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666), height: 1.6), textAlign: TextAlign.center),
+        ],
+        Text(title, style: TextStyle(fontSize: r.heading2, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
+        SizedBox(height: r.spacingM),
+        Text(description, style: TextStyle(fontSize: r.body, color: const Color(0xFF666666), height: 1.7)),
+      ],
+    );
+
+    final iconTile = Container(
+      width: r.iconHero * 2.5,
+      height: r.iconHero * 2.5,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0d47a1), Color(0xFF1976d2)],
+        ),
+        borderRadius: BorderRadius.circular(r.cardRadius * 1.5),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF0d47a1).withValues(alpha: 0.25), blurRadius: 24, offset: const Offset(0, 10)),
         ],
       ),
+      child: Icon(icon, size: r.iconHero * 1.3, color: Colors.white),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 640;
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              textBlock,
+              SizedBox(height: r.spacingL),
+              Center(child: iconTile),
+            ],
+          );
+        }
+
+        final rowChildren = reverse
+            ? [
+                iconTile,
+                SizedBox(width: r.spacingXXL),
+                Expanded(child: textBlock),
+              ]
+            : [
+                Expanded(child: textBlock),
+                SizedBox(width: r.spacingXXL),
+                iconTile,
+              ];
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: rowChildren,
+        );
+      },
     );
   }
 
@@ -298,7 +326,6 @@ class HomePageContent extends StatelessWidget {
     const materials = [
       _MaterialItem(name: 'Aluminum',       image: 'assets/images/home_images/aluminum.webp'),
       _MaterialItem(name: 'Stainless Steel', image: 'assets/images/home_images/stainless_steel.webp'),
-      _MaterialItem(name: 'Titanium',       image: 'assets/images/home_images/titanium_metal.webp'),
       _MaterialItem(name: 'Brass',          image: 'assets/images/home_images/brass_metal.webp'),
       _MaterialItem(name: 'Copper',         image: 'assets/images/home_images/copper_metal_surface.webp'),
       _MaterialItem(name: 'Plastics',       image: 'assets/images/home_images/plastic_meterial.webp'),

@@ -17,7 +17,7 @@ class AboutPage extends StatelessWidget {
         FadeInSection(
           child: PageHero(
             title: 'About MV Manufacturing LLC',
-            subtitle: 'Building precision parts and lasting partnerships since 2025',
+            subtitle: 'Family-owned craftsmanship, dependable quality, and personalized CNC machining services.',
           ),
         ),
         _buildStorySection(context),
@@ -44,13 +44,13 @@ class AboutPage extends StatelessWidget {
               Text('Our Story', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingL),
               Text(
-                'Founded in 2025 by master machinist Minh Vu, MV Manufacturing LLC began in a modest 1,300 square foot facility with just one CNC machine and a vision for excellence. What started as a small job shop serving local manufacturers has grown into a full-service precision machining company trusted by aerospace, medical, and industrial clients nationwide.',
+                'Founded in 2025 by machinist Minh Vu, MV Manufacturing LLC was built on a simple goal: deliver precision CNC machining with honest communication, dependable service, and exceptional craftsmanship. Operating from a 1,300-square-foot shop, every project is personally overseen from start to finish.',
                 style: TextStyle(fontSize: r.bodyProse, color: const Color(0xFF333333), height: 1.8),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: r.spacingM),
               Text(
-                'Today, we operate from our facility with two CNC machines, with Minh hands-on at every step. Our commitment to quality, innovation, and customer service remains as strong as it was on day one.',
+                'Whether producing prototypes, custom components, or small production runs, we focus on precision, consistent quality, and reliable turnaround times. Every part is carefully machined and inspected before it leaves our shop, ensuring our customers receive products they can trust.',
                 style: TextStyle(fontSize: r.bodyProse, color: const Color(0xFF333333), height: 1.8),
                 textAlign: TextAlign.center,
               ),
@@ -115,7 +115,7 @@ class AboutPage extends StatelessWidget {
                   _buildValueCard(r, icon: Icons.lightbulb, title: 'Innovation', description: 'Continuous investment in technology and training keeps us at the forefront of the industry.'),
                   _buildValueCard(r, icon: Icons.people, title: 'Teamwork', description: 'Our skilled team works collaboratively to solve challenges and deliver exceptional results.'),
                   _buildValueCard(r, icon: Icons.psychology, title: 'Customer Focus', description: 'Understanding and exceeding customer expectations drives everything we do.'),
-                  _buildValueCard(r, icon: Icons.trending_up, title: 'Continuous Improvement', description: 'We constantly refine our processes and capabilities to better serve our customers.'),
+                  _buildValueCard(r, icon: Icons.trending_up, title: 'Continuous Improvement', description: 'We constantly improve our equipment, processes, and skills to better serve our customers.'),
                 ],
               ),
             ],
@@ -167,7 +167,7 @@ class AboutPage extends StatelessWidget {
                 runSpacing: r.spacingXL,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildTeamMember(r, name: 'Minh Vu', title: 'Founder & Owner', description: 'Master machinist and sole operator, personally handling every job from start to finish.'),
+                  _buildTeamMember(r, name: 'Minh Vu', title: 'Founder & Owner', description: 'Minh founded MV Manufacturing LLC with a passion for precision machining and quality craftsmanship. He personally manages every stage of production—from programming and machining to final inspection—ensuring every customer receives consistent quality and direct communication.'),
                 ],
               ),
             ],
@@ -214,8 +214,8 @@ class AboutPage extends StatelessWidget {
             children: [
               Text('Our Journey', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: const Color(0xFF1a1a1a))),
               SizedBox(height: r.spacingXXL),
-              _buildTimelineItem(r, '2025', 'Founded', 'MV Manufacturing LLC established with 1 CNC machine in a 1,300 sq ft facility'),
-              _buildTimelineItem(r, '2026', 'Growing', 'Added a second CNC machine, continuing to build client relationships'),
+              _buildTimelineItem(r, '2025', 'Company Founded', 'Started MV Manufacturing LLC with one CNC machine and a commitment to precision machining and dependable customer service.'),
+              _buildTimelineItem(r, '2026', 'Expanded Capabilities', 'Added a second CNC machine to increase production capacity'),
             ],
           ),
         ),
@@ -261,9 +261,9 @@ class AboutPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: r.maxNarrowWidth),
           child: Column(
             children: [
-              Text('Join Our Growing List of Partners', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+              Text('Ready to Start Your Project?', style: TextStyle(fontSize: r.heading1, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
               SizedBox(height: r.spacingM),
-              Text('Experience the MV Machine Shop difference', style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
+              Text('Whether you need prototypes, custom components, or production machining, we are ready to help bring your ideas to life', style: TextStyle(fontSize: r.body + 2, color: Colors.white70), textAlign: TextAlign.center),
               SizedBox(height: r.spacingL),
               HoverLift(
                 liftPx: 3,

@@ -115,7 +115,7 @@ class CapabilitiesPage extends StatelessWidget {
                 runSpacing: r.spacingL,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildMaterialCategory(r, 'Metals', ['Aluminum (all alloys)', 'Stainless Steel (300/400 series)', 'Steel (mild, tool, alloy)', 'Titanium (Grade 2, 5)', 'Brass & Bronze', 'Copper', 'Inconel & Hastelloy']),
+                  _buildMaterialCategory(r, 'Metals', ['Aluminum (all alloys)', 'Stainless Steel (300/400 series)', 'Steel (mild, tool, alloy)', 'Brass & Bronze', 'Copper', 'Inconel & Hastelloy']),
                   _buildMaterialCategory(r, 'Plastics', ['PEEK', 'Delrin (Acetal)', 'Nylon', 'PTFE (Teflon)', 'Polycarbonate', 'UHMW', 'Ultem']),
                   _buildMaterialCategory(r, 'Specialty Materials', ['Carbon Fiber', 'G10/FR4', 'Ceramics', 'Graphite', 'Exotic alloys', 'Medical-grade materials']),
                 ],
