@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
@@ -14,11 +13,10 @@ class AboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FadeInSection(
-          child: PageHero(
-            title: 'About MV Manufacturing LLC',
-            subtitle: 'Family-owned craftsmanship, dependable quality, and personalized CNC machining services.',
-          ),
+        PageHero(
+          eyebrow: 'About Us',
+          title: 'About MV Manufacturing LLC',
+          subtitle: 'Family-owned craftsmanship, dependable quality, and personalized CNC machining services.',
         ),
         _buildStorySection(context),
         _buildMissionSection(context),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/footer.dart';
 import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/quote_form.dart';
@@ -81,11 +80,14 @@ class _GalleryPageState extends State<GalleryPage> {
     final r = Responsive.of(context);
     return Column(
       children: [
-        FadeInSection(
-          child: PageHero(
-            title: 'Our Work',
-            subtitle: 'Precision machined components across industries',
-          ),
+        PageHero(
+          eyebrow: 'Gallery',
+          title: 'Our Work',
+          subtitle: 'Precision machined components across industries',
+          // There's no hero clip for this page, and one frozen photo would
+          // undersell the range of work — so the backdrop runs the album
+          // itself, cross-fading through every gallery shot.
+          backgroundImages: kGalleryImages,
         ),
         _buildGrid(context, r),
         _buildCTASection(context, r),

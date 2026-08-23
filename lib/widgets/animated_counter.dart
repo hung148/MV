@@ -1,107 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-import 'package:mv/main.dart'; // for PageTransitionNotifier
-
-/// Wraps any widget so it fades + slides up after the page transition completes.
-/// Stagger multiple sections by passing increasing [delay] values.
-///
-/// Usage:
-///   FadeInSection(child: _buildHero())
-///   FadeInSection(delay: Duration(milliseconds: 100), child: _buildNext())
-class FadeInSection extends StatefulWidget {
-  final Widget child;
-  final Duration delay;
-
-  const FadeInSection({
-    super.key,
-    required this.child,
-    this.delay = Duration.zero,
-  });
-
-  @override
-  State<FadeInSection> createState() => _FadeInSectionState();
-}
-
-class _FadeInSectionState extends State<FadeInSection>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _opacity;
-  late final Animation<Offset> _slide;
-
-  // Whether we have already subscribed to the notifier this mount cycle
-  ValueNotifier<bool>? _notifier;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _slide = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Re-subscribe whenever the inherited notifier instance changes
-    // (e.g. after a page swap gives us a fresh notifier).
-    final newNotifier = context
-        .dependOnInheritedWidgetOfExactType<PageTransitionNotifier>()
-        ?.notifier;
-
-    if (newNotifier == _notifier) return; // same notifier, nothing to do
-
-    // Unsubscribe from old notifier
-    _notifier?.removeListener(_onReadyChanged);
-    _notifier = newNotifier;
-    _notifier?.addListener(_onReadyChanged);
-
-    // Immediately evaluate current state
-    _onReadyChanged();
-  }
-
-  void _onReadyChanged() {
-    final ready = _notifier?.value ?? true;
-    if (ready) {
-      // Page fade-in just finished — reset and play our animation after delay.
-      // Capture the notifier reference so the delayed callback can verify that
-      // a new transition hasn't started by the time it fires, preventing a
-      // stale forward() from causing a visible content pop mid-transition.
-      _controller.reset();
-      final notifierAtSchedule = _notifier;
-      Future.delayed(widget.delay, () {
-        if (!mounted) return;
-        if (notifierAtSchedule?.value != true) return;
-        _controller.forward();
-      });
-    } else {
-      // New transition starting — snap back to hidden so we're ready.
-      _controller.reset();
-    }
-  }
-
-  @override
-  void dispose() {
-    _notifier?.removeListener(_onReadyChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _opacity,
-      child: SlideTransition(position: _slide, child: widget.child),
-    );
-  }
-}
-
 
 /// Animates a number counting up from 0 to [end].
 /// Use inside the stats section.
@@ -121,6 +19,22 @@ class AnimatedCounter extends StatefulWidget {
   final bool replayOnScroll;
   final bool useKShorthand;
 
+  /// Waits this long after becoming visible before starting to count.
+  ///
+  /// Needed where the counter sits inside something with its own entrance
+  /// animation — the hero's trust strip, for instance. Visibility is measured
+  /// from layout geometry, so a counter that's still at opacity 0 partway
+  /// through a fade-in already counts as visible, and without a delay it
+  /// would run most of its count before anyone could see it.
+  final Duration startDelay;
+
+  /// How long the whole count takes.
+  ///
+  /// Paired with the ease-out curve below, so a longer duration doesn't just
+  /// slow everything evenly — it stretches the settling tail, where the
+  /// deceleration actually reads.
+  final Duration duration;
+
   const AnimatedCounter({
     super.key,
     required this.end,
@@ -128,6 +42,8 @@ class AnimatedCounter extends StatefulWidget {
     this.visibilityThreshold = 0.3,
     this.replayOnScroll = true,
     this.useKShorthand = true,
+    this.startDelay = Duration.zero,
+    this.duration = const Duration(milliseconds: 2600),
   });
 
   @override
@@ -137,6 +53,22 @@ class AnimatedCounter extends StatefulWidget {
 class _AnimatedCounterState extends State<AnimatedCounter>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
+
+  /// The count-up is deliberately not linear: it sprints through most of the
+  /// range and then eases into the final digits, which is what makes a
+  /// counter feel like it's *settling* on a number rather than sliding to
+  /// one. A cubic ease-out is ~half way there in the first fifth of the run
+  /// and spends the rest landing.
+  ///
+  /// Cubic rather than something sharper (quart, expo): the stats on this
+  /// site include small values like "2" and "24hr", and a steeper curve hits
+  /// their final digit so early that the counter looks frozen for most of its
+  /// duration. The way to make the slowdown more pronounced is a longer
+  /// [AnimatedCounter.duration], not a steeper curve — that stretches the
+  /// tail, where the deceleration reads, instead of flattening it into a
+  /// dead zone.
+  late final CurvedAnimation _progress;
+
   late final Key _visibilityKey;
 
   bool _hasAnimated = false;
@@ -148,13 +80,22 @@ class _AnimatedCounterState extends State<AnimatedCounter>
     _visibilityKey = UniqueKey();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: widget.duration,
     );
+    _progress = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     // VisibilityDetector doesn't recheck on window/browser resize on its
     // own — only on scroll or its own periodic timer — so without this a
     // counter that lands in/out of view purely from a resize can get stuck
     // until the next scroll. Force an immediate recheck after each resize.
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedCounter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.duration != oldWidget.duration) {
+      _controller.duration = widget.duration;
+    }
   }
 
   @override
@@ -180,7 +121,17 @@ class _AnimatedCounterState extends State<AnimatedCounter>
     if (isVisible) {
       if (_hasAnimated) return; // already counted up / counting — leave it
       _hasAnimated = true;
-      _controller.forward(from: 0);
+      if (widget.startDelay == Duration.zero) {
+        _controller.forward(from: 0);
+      } else {
+        Future.delayed(widget.startDelay, () {
+          if (_disposed || !mounted) return;
+          // Scrolled back out during the delay — _hasAnimated was reset, so
+          // don't start a count nobody asked for; the next scroll-in will.
+          if (!_hasAnimated) return;
+          _controller.forward(from: 0);
+        });
+      }
     } else {
       if (!widget.replayOnScroll) return; // one-shot mode never resets
       if (!_hasAnimated) return; // never started, nothing to reset
@@ -193,6 +144,9 @@ class _AnimatedCounterState extends State<AnimatedCounter>
   void dispose() {
     _disposed = true;
     WidgetsBinding.instance.removeObserver(this);
+    // The CurvedAnimation holds a listener on the controller; drop it before
+    // the controller goes.
+    _progress.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -219,9 +173,9 @@ class _AnimatedCounterState extends State<AnimatedCounter>
       key: _visibilityKey,
       onVisibilityChanged: _onVisibilityChanged,
       child: AnimatedBuilder(
-        animation: _controller,
+        animation: _progress,
         builder: (context, _) {
-          final value = num * _controller.value;
+          final value = num * _progress.value;
           final display = !widget.useKShorthand
             ? (decimalPlaces > 0 ? value.toStringAsFixed(decimalPlaces) : value.round().toString())
             : value >= 1000000

@@ -4,8 +4,8 @@ import 'dart:js_interop';
 import 'package:flutter/material.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
-import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/page_hero.dart';
+import 'package:mv/widgets/animated_counter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mv/widgets/footer.dart';
 import 'package:mv/widgets/hover_lift.dart';
@@ -34,56 +34,63 @@ class HomePageContent extends StatelessWidget {
 
   Widget _buildHero(BuildContext context) {
     final r = Responsive.of(context);
-    return FadeInSection(
-      child: PageHero.home(
-        title: 'Precision CNC Manufacturing',
-        subtitle: 'Your trusted partner for high-quality machining solutions',
-        backgroundVideo: 'assets/videos/home_hero_bg.mp4',
-        body: 'From prototype to production — owner-operated, personally inspected, every part.',
-        actions: Wrap(
-          spacing: r.spacingM,
-          runSpacing: r.spacingM,
-          alignment: WrapAlignment.center,
-          children: [
-            HoverLift(
-              liftPx: 3,
-              addShadow: true,
-              borderRadius: 4,
-              child: ElevatedButton(
-                onPressed: () => context.go('/capabilities'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF0d47a1),
-                  padding: r.primaryButtonPadding,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  elevation: 4,
-                ),
-                child: Text(
-                  'View Our Capabilities',
-                  style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
-                ),
+    return PageHero.home(
+      eyebrow: 'MV Manufacturing LLC · Santa Clara, CA',
+      title: 'Precision CNC Manufacturing',
+      subtitle: 'Your trusted partner for high-quality machining solutions',
+      backgroundVideo: 'assets/videos/home_hero_bg.mp4',
+      body: 'From prototype to production — owner-operated, personally inspected, every part.',
+      stats: const [
+        HeroStat(value: '±0.0005"', label: 'Tolerance'),
+        HeroStat(value: '24 hrs', label: 'Quote turnaround'),
+        HeroStat(value: '100%', label: 'Owner inspected'),
+      ],
+      actions: Wrap(
+        spacing: r.spacingM,
+        runSpacing: r.spacingM,
+        alignment: WrapAlignment.start,
+        children: [
+          HoverLift(
+            liftPx: 3,
+            addShadow: true,
+            borderRadius: 4,
+            child: ElevatedButton(
+              onPressed: () => context.go('/capabilities'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF0d47a1),
+                padding: r.primaryButtonPadding,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                elevation: 4,
+              ),
+              child: Text(
+                'View Our Capabilities',
+                style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
               ),
             ),
-            HoverLift(
-              liftPx: 3,
-              addShadow: true,
-              borderRadius: 4,
-              child: OutlinedButton(
-                onPressed: () => showQuoteDialog(context),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white, width: 2),
-                  padding: r.primaryButtonPadding,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                ),
-                child: Text(
-                  'Get a Quote',
-                  style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
-                ),
+          ),
+          HoverLift(
+            liftPx: 3,
+            addShadow: true,
+            borderRadius: 4,
+            child: OutlinedButton(
+              onPressed: () => showQuoteDialog(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                // A hint of fill so the ghost button still reads as a
+                // button where the hero video runs bright behind it.
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.65), width: 2),
+                padding: r.primaryButtonPadding,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
+              child: Text(
+                'Get a Quote',
+                style: TextStyle(fontSize: r.buttonText, fontWeight: FontWeight.bold),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

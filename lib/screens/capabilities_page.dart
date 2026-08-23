@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/page_hero.dart';
+import 'package:mv/widgets/animated_counter.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/footer.dart';
@@ -14,12 +14,11 @@ class CapabilitiesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FadeInSection(
-          child: PageHero(
-            title: 'Our Capabilities',
-            subtitle: 'State-of-the-art equipment and expertise to handle your most demanding projects',
-            backgroundVideo: 'assets/videos/capabilities_hero_bg.mp4',
-          ),
+        PageHero(
+          eyebrow: 'Capabilities',
+          title: 'Our Capabilities',
+          subtitle: 'State-of-the-art equipment and expertise to handle your most demanding projects',
+          backgroundVideo: 'assets/videos/capabilities_hero_bg.mp4',
         ),
         _buildEquipmentSection(context),
         _buildMaterialsSection(context),

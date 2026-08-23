@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mv/widgets/fade_in_section.dart';
 import 'package:mv/widgets/page_hero.dart';
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
@@ -14,12 +13,11 @@ class ServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FadeInSection(
-          child: PageHero(
-            title: 'Our Services',
-            subtitle: 'Comprehensive CNC machining solutions for all your manufacturing needs',
-            backgroundVideo: 'assets/videos/services_hero_bg.mp4',
-          ),
+        PageHero(
+          eyebrow: 'Services',
+          title: 'Our Services',
+          subtitle: 'Comprehensive CNC machining solutions for all your manufacturing needs',
+          backgroundVideo: 'assets/videos/services_hero_bg.mp4',
         ),
         _buildServicesGrid(context),
         _buildProcessSection(context),

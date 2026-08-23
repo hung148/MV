@@ -8,8 +8,10 @@ import 'package:mv/screens/home_page.dart';
 import 'package:mv/screens/services_page.dart';
 import 'package:mv/utils/seo_helper.dart';
 import 'package:mv/widgets/navigation_bar.dart';
+import 'package:mv/widgets/page_hero.dart' show HeroHeightNotification;
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,14 +19,22 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   usePathUrlStrategy();
-  // Fire visibility callbacks immediately (default is 500 ms batching which
-  // makes ScrollReveal items pop in late rather than as they enter the view).
+  // Fire visibility callbacks immediately. The package's default batches them
+  // on a 500 ms timer, so anything keyed off visibility — every AnimatedCounter,
+  // the hero slideshow's pause/resume — could sit idle for up to half a second
+  // after it was already on screen. (This line's comment was here without the
+  // line itself, which is why the counters felt slow to start.)
+  VisibilityDetectorController.instance.updateInterval = Duration.zero;
   runApp(const MVWebsite());
 }
 
 // ─── Page transition notifier ─────────────────────────────────────────────────
-// FadeInSection listens to this. When `ready` flips to true, sections know the
-// page fade-in is complete and they can start their stagger animations.
+// PageHero listens to this. When `ready` flips to true, the route's cross-fade
+// is complete and the hero can start its staggered entrance — otherwise the
+// stagger would play out behind a page that's still fading in.
+//
+// (AnimatedCounter does NOT use this; it triggers off VisibilityDetector when
+// it scrolls into view.)
 class PageTransitionNotifier extends InheritedNotifier<ValueNotifier<bool>> {
   const PageTransitionNotifier({
     super.key,
@@ -234,7 +244,8 @@ class _NotFoundPage extends StatelessWidget {
       ),
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          // Top inset clears the transparent nav bar floating above.
+          padding: const EdgeInsets.fromLTRB(24, kNavBarHeight, 24, 0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -310,9 +321,42 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const double _navHeight = 70;
+  static const double _navHeight = kNavBarHeight;
+
+  /// Distance over which the bar eases from transparent to solid, ending at
+  /// the moment the hero's bottom edge reaches the underside of the bar. So
+  /// the bar stays see-through for the whole hero, darkens over the last
+  /// [_fadeDistance] of it, and is fully solid the instant the hero is gone —
+  /// reversing exactly the same way on the way back up.
+  static const double _fadeDistance = 160;
+
   bool _isMobileMenuOpen = false;
+
+  /// 0 = fully transparent over the hero, 1 = solid. Held in a notifier
+  /// rather than State so a scroll frame repaints only the bar's decoration
+  /// instead of rebuilding the shell (and re-running this build) 60× a second.
+  final ValueNotifier<double> _solidity = ValueNotifier<double>(0);
+
+  /// Height of the current page's hero, as measured and reported by
+  /// [PageHero]. Null until the first frame — and on a page with no hero at
+  /// all (the 404), which is why the fallback below is the viewport height.
+  double? _heroHeight;
+
+  /// Last vertical scroll offset, kept so the solidity can be recomputed when
+  /// the hero height arrives (or changes on resize) without waiting for the
+  /// next scroll event.
+  double _offset = 0;
+
+  /// Viewport height, refreshed each build — used as the hero-height fallback.
+  double _viewport = 0;
+
   final GlobalKey<CustomNavigationBarState> _navBarKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _solidity.dispose();
+    super.dispose();
+  }
 
   void _onMobileMenuChanged(bool isOpen) {
     if (mounted) {
@@ -324,16 +368,76 @@ class _AppShellState extends State<AppShell> {
     _navBarKey.currentState?.closeMobileMenu();
   }
 
+  /// Listens to whichever SingleChildScrollView the current route built (they
+  /// live inside _FadeRouteContent), rather than owning a ScrollController
+  /// here — that way a route change can never leave a stale controller
+  /// attached.
+  bool _onScroll(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    _offset = n.metrics.pixels;
+    _updateSolidity();
+    return false;
+  }
+
+  bool _onHeroHeight(HeroHeightNotification n) {
+    if (n.height == _heroHeight) return true;
+    _heroHeight = n.height;
+    _updateSolidity();
+    return true; // the shell is the only interested party — stop it here
+  }
+
+  void _updateSolidity() {
+    final hero = _heroHeight ?? _viewport;
+
+    // The hero's bottom edge is level with the underside of the bar once the
+    // page has scrolled (heroHeight - navHeight) — that's where the bar must
+    // be fully solid.
+    final end = hero - _navHeight;
+    if (end <= 0) {
+      _solidity.value = 1; // no hero worth speaking of — just stay solid
+      return;
+    }
+
+    // Start the fade [_fadeDistance] earlier, but never above the top of the
+    // page: on a hero shorter than the fade distance the bar would otherwise
+    // begin life partly darkened.
+    final start = (end - _fadeDistance).clamp(0.0, end);
+    _solidity.value = ((_offset - start) / (end - start)).clamp(0.0, 1.0);
+  }
+
+  @override
+  void didUpdateWidget(covariant AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Every route jumps its scroll offset back to 0 on entry, so the bar has
+    // to return to transparent too — otherwise navigating away from a
+    // scrolled page leaves a solid bar sitting on the new page's hero. The
+    // measured height is dropped as well, since the incoming page's hero
+    // hasn't reported yet.
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      _offset = 0;
+      _heroHeight = null;
+      _solidity.value = 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _viewport = MediaQuery.sizeOf(context).height;
     return Scaffold(
-      backgroundColor: const Color(0xFF0d47a1),
+      backgroundColor: const Color(0xFF04101F),
       body: Stack(
         children: [
-          // Page content sits below the nav bar.
+          // Page content runs edge-to-edge *underneath* the nav bar, so the
+          // hero's video/gradient reaches the very top of the window.
+          // PageHero insets its own content by kNavBarHeight to clear the bar.
           Positioned.fill(
-            top: _navHeight,
-            child: widget.child,
+            child: NotificationListener<HeroHeightNotification>(
+              onNotification: _onHeroHeight,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _onScroll,
+                child: widget.child,
+              ),
+            ),
           ),
           // Tap-outside overlay at AppShell level — covers the page content
           // area (y = 70 to bottom) so taps anywhere on the page close the
@@ -364,6 +468,7 @@ class _AppShellState extends State<AppShell> {
               currentRoute: widget.currentRoute,
               onNavigate: (route) => context.go(route),
               onMobileMenuChanged: _onMobileMenuChanged,
+              solidity: _solidity,
             ),
           ),
         ],
