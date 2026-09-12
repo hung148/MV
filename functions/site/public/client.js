@@ -125,7 +125,12 @@ function mountPage() {
       && !document.documentElement.classList.contains('menu-open')
       && !document.body.classList.contains('modal-open') && !navigating;
     toggle.hidden = false;
-    function updateButton() { toggle.textContent = video.paused ? 'Play video' : 'Pause video'; toggle.setAttribute('aria-label', `${video.paused ? 'Play' : 'Pause'} background video`); toggle.setAttribute('aria-pressed', String(!video.paused)); }
+    function updateButton() {
+      const active = !userPaused && !video.paused;
+      toggle.textContent = active ? 'Pause video' : 'Play video';
+      toggle.setAttribute('aria-label', `${active ? 'Pause' : 'Play'} background video`);
+      toggle.setAttribute('aria-pressed', String(active));
+    }
     async function syncPlayback() {
       if (canPlay()) {
         if (playPending || !video.paused) return;
@@ -143,7 +148,7 @@ function mountPage() {
     const overlays = new MutationObserver(syncPlayback);
     overlays.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     overlays.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    toggle.addEventListener('click', () => { userPaused = !video.paused; visible = true; syncPlayback(); }, { signal });
+    toggle.addEventListener('click', () => { userPaused = toggle.getAttribute('aria-pressed') === 'true'; visible = true; syncPlayback(); }, { signal });
     video.addEventListener('play', updateButton, { signal });
     video.addEventListener('pause', updateButton, { signal });
     updateButton();

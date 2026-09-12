@@ -7,7 +7,7 @@ platform projects remain available, including pre-existing uncommitted work.
 
 ## Local development
 
-Use Node.js 24, matching the existing Firebase Functions runtime.
+Use Node.js 22, supported by both the first-generation quote function and the second-generation SSR function.
 
 ```sh
 npm run dev

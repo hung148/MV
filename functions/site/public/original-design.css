@@ -1,3 +1,4 @@
+@import url("./vendor/lenis.css");
 /* Values ported from the existing Flutter Responsive, PageHero and page widgets. */
 .industry-grid .material-icon{display:block;margin-bottom:24px}.timeline-item{display:flex;gap:24px;margin-bottom:32px}.timeline-item>strong{width:80px;flex-shrink:0;color:#0d47a1;font-size:24px}.timeline-item>div{padding-left:24px;border-left:3px solid #0d47a14d}.timeline-item h3{margin-bottom:8px}.timeline-item p{margin-bottom:0}.capacity>div{padding:28px 32px;background:white;border-radius:8px;box-shadow:0 2px 8px #0000000d}.capacity .material-icon{display:block;margin-bottom:24px}.capacity strong{font-size:28px!important}.equipment .card>.material-icon{float:left;margin-right:16px}.equipment .card h3{min-height:48px;display:flex;align-items:center}.equipment .card ul{clear:both}.materials li::marker{color:#0d47a1}.hero:hover .media-toggle:not(:focus-visible){opacity:0;pointer-events:none}
 @font-face{font-family:Roboto;src:url('./fonts/roboto-regular.ttf') format('truetype');font-weight:400;font-display:swap}
@@ -94,4 +95,10 @@ main.page-leaving{opacity:0}
 .hero-content>.actions{animation:hero-first-paint 550ms ease-out 800ms backwards}
 .hero-content>.stats{animation:hero-first-paint 550ms ease-out 950ms backwards}
 @keyframes hero-first-paint{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+}
+
+/* Armed by JS only below the viewport; no-JS content remains readable. */
+@media (prefers-reduced-motion: no-preference) {
+  .text-reveal-pending :is(h2, h3, p, li) { opacity: 0; }
+  .text-reveal-pending:focus-within :is(h2, h3, p, li) { opacity: 1; }
 }

@@ -6,9 +6,31 @@
 .home-content .home-work{background:var(--home-paper)}.home-work .gallery-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.home-work .gallery-item{border-radius:5px;border:1px solid #dce3eb}.home-work .gallery-item img{aspect-ratio:1;transition:transform .25s}.home-work .home-gallery-hint{font-size:13px;margin:18px 0 0}
 .home-material-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px}.home-material{display:block;text-decoration:none;border:1px solid #dce3eb;border-radius:5px;overflow:hidden;transition:border-color .2s,box-shadow .2s}.home-material img{width:100%;aspect-ratio:1.25;object-fit:cover}.home-material h3{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:18px 14px;font-size:15px;color:var(--home-ink)}.home-material:hover{border-color:var(--blue);box-shadow:0 5px 18px #10243a12}
 .home-content .home-owner{background:var(--home-paper)}.home-owner-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:72px;align-items:center}.home-owner-photo{position:relative;overflow:hidden;border-radius:6px}.home-owner-photo img{width:100%;aspect-ratio:.9;object-fit:cover}.home-owner-photo>span{position:absolute;bottom:0;left:0;right:0;padding:36px 24px 20px;font-size:10px;letter-spacing:1.3px;background:linear-gradient(transparent,#04101fe6);color:white}.home-owner .home-heading{margin-bottom:28px}.home-owner-points{list-style:none;margin:0 0 22px;padding:0}.home-owner-points li{display:flex;gap:20px;padding:20px 0;border-top:1px solid #dce3eb}.home-owner-points li>span{color:var(--blue);font-size:12px;font-weight:700;padding-top:3px}.home-owner-points h3{font-size:18px;margin-bottom:7px}.home-owner-points p{font-size:15px;margin:0}
-.home-content .home-next{background:#0b2545;color:white}.home-next-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:88px;align-items:center}.home-content .home-next h2{font-size:clamp(36px,4vw,56px)}.home-content .home-next p{color:#c4d2e1}.home-content .home-next .home-label{color:#8ac8ff}.home-next .button{font-size:16px;padding:17px 28px;min-height:52px;margin-top:12px}.home-call{display:block;width:fit-content;min-height:44px;padding-top:18px;font-size:14px;color:#c4d2e1}.home-quote-notes{padding:32px;border:1px solid #ffffff30;border-radius:6px;background:#ffffff04}.home-quote-notes h3{font-size:19px;margin-bottom:24px}.home-quote-notes ol{list-style:none;padding:0;margin:0 0 24px}.home-quote-notes li{display:flex;gap:18px;align-items:center;padding:15px 0;border-bottom:1px solid #ffffff20;font-size:15px}.home-quote-notes li span{font-size:12px;color:#8ac8ff}.home-quote-notes p{font-size:14px;margin:0}
+.home-content .home-next{background:#0b2545;color:white}.home-next-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:88px;align-items:center}.home-content .home-next h2{font-size:clamp(36px,4vw,56px)}.home-content .home-next p{color:#c4d2e1}.home-content .home-next .home-label{color:#8ac8ff}.home-next .button{font-size:16px;padding:17px 28px;min-height:52px;margin-top:12px}.home-call{display:block;width:fit-content;min-height:44px;padding-top:18px;font-size:14px;color:#c4d2e1}.home-quote-notes{padding:32px;border:1px solid #ffffff30;border-radius:6px;background:#ffffff04}.home-quote-notes h3{font-size:19px;margin-bottom:24px}.home-quote-notes ol{list-style:none;padding:0;margin:0 0 24px}.home-quote-notes li{display:flex;gap:18px;align-items:center;padding:15px 0;border-bottom:1px solid #ffffff20;font-size:15px}.home-quote-notes li>.quote-step{font-size:12px;color:#8ac8ff;flex-shrink:0}.home-quote-notes .quote-step-copy{min-width:0;font-size:12px;color:#8ac8ff}.home-quote-notes p{font-size:14px;margin:0}
 @media(max-width:1023px){.home-proof>.container{align-items:flex-start;flex-direction:column;gap:12px}.home-content .section{padding:64px 24px}.home-heading-row{align-items:flex-start;flex-direction:column;gap:20px}.home-service-grid{gap:16px}.home-service-body{padding:22px}.home-service h3{font-size:21px}.home-material-grid{gap:12px}.home-material h3{padding:14px 10px;font-size:14px}.home-owner-grid{gap:36px}.home-next-grid{gap:36px}}
 @media(max-width:700px){.home-content .section{padding:56px 20px}.home-proof{padding:24px 20px}.home-proof ul{gap:10px;flex-direction:column}.home-service-grid{grid-template-columns:1fr;gap:24px}.home-service-photo img{aspect-ratio:1.9}.home-service-body{padding:24px}.home-service h3{font-size:25px}.home-work .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-material-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-material h3{font-size:15px;padding:16px 12px}.home-owner-grid,.home-next-grid{grid-template-columns:1fr;gap:36px}.home-owner-photo img{aspect-ratio:1.3}.home-owner-photo{max-width:100%}.home-heading>p:last-child{font-size:16px}.home-heading-row{margin-bottom:28px}.home-content h2{letter-spacing:-.8px}.home-quote-notes{padding:24px}.home-next .button{width:100%}.home-call{margin:auto;padding-bottom:5px}}
 
 .home-work .filmstrip{margin-bottom:0}.home-work .filmstrip .gallery-item img{aspect-ratio:1}
 .home-work .filmstrip-slot{min-width:0}
+
+/* Give each service its own scroll beat; compact screens keep the regular grid. */
+@media (min-width: 768px) and (min-height: 620px) and (prefers-reduced-motion: no-preference) {
+  .home-offerings { content-visibility: visible; }
+  /* Equal rows follow the tallest card, including wrapped text and loaded fonts. */
+  .home-service-grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 100px; padding-bottom: 100px; }
+  .home-service-grid .home-service {
+    position: sticky; top: 90px; display: grid;
+    grid-template-columns: 1fr 1fr; align-items: stretch;
+    box-shadow: 0 12px 32px #10243a14;
+  }
+  /* Same top and equal height let each later card completely cover the last. */
+  .home-service-grid .home-service-photo img { height: 100%; min-height: 300px; aspect-ratio: auto; }
+  .home-service-grid .home-service-body { padding: 28px; }
+  /* Focusing an earlier link must never leave it behind a later card. */
+  .home-service-grid:focus-within .home-service { position: relative; top: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero .hero-media { translate: none !important; }
+  .home-owner-photo img { scale: none !important; }
+}
+

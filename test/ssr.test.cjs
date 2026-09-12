@@ -278,3 +278,38 @@ test('quote validation agrees with current Firestore and attachment limits', asy
   assert.ok(validateFile({ name: 'part.pdf', size: 10485761 }));
   assert.ok(validateFile({ name: 'part.exe', size: 10 }));
 });
+
+test('scroll reserve accumulates, saturates, and reverses without old momentum', async () => {
+  const { addScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
+  assert.equal(addScrollReserve(100, 80), 180);
+  assert.equal(addScrollReserve(300, 1000), 360);
+  assert.equal(addScrollReserve(-300, -1000), -360);
+  assert.equal(addScrollReserve(300, -40), -40);
+});
+
+test('reserve drains smoothly to rest within the speed limit across refresh rates', async () => {
+  const { drainScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
+  for (const hz of [30, 60, 120, 144]) {
+    let reserve = 360, velocity = 0, total = 0;
+    for (let i = 0; i < hz * 4 && reserve >= .5; i++) {
+      const step = drainScrollReserve(reserve, velocity, 1000 / hz);
+      assert.ok(step.distance >= 0 && step.distance <= 600 / hz);
+      assert.ok(step.distance <= reserve);
+      reserve -= step.distance; total += step.distance; velocity = step.velocity;
+    }
+    assert.ok(reserve < .5);
+    assert.ok(total > 359.5 && total <= 360 + 1e-9);
+  }
+  assert.equal(drainScrollReserve(100, 0, 0).distance, 0);
+  assert.ok(drainScrollReserve(-100, 400, 16).distance < 0);
+  assert.ok(drainScrollReserve(360, 600, 1000).distance <= 19.2);
+});
+
+test('scroll reserve slows during animation and eases back afterward', async () => {
+  const { drainScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
+  let velocity = 360;
+  for (let i = 0; i < 60; i++) velocity = drainScrollReserve(360, velocity, 1000 / 60, 140).velocity;
+  assert.ok(velocity < 141);
+  const resumed = drainScrollReserve(360, velocity, 1000 / 60, 360);
+  assert.ok(resumed.velocity > velocity && resumed.velocity < 360);
+});

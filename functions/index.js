@@ -1,9 +1,10 @@
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 const { getStorage } = require("firebase-admin/storage");
 const { escape: escapeHtml } = require('./site/render.cjs');
 
-admin.initializeApp();
+initializeApp();
 
 // Full HTML documents for the public website; Firebase Hosting serves assets.
 exports.ssrSite = require('firebase-functions/v2/https').onRequest(
@@ -108,7 +109,7 @@ exports.onQuoteWithFiles = functions.firestore
           </ul>`;
       }
 
-      await admin.firestore().collection("mail").add({
+      await getFirestore().collection("mail").add({
         to: ["minhvu@mvmanufacturing.com"],
         message: {
           subject: `New Quote Request from ${quote.fullName}${attachments.length > 0 ? ` [${attachments.length} file${attachments.length > 1 ? "s" : ""}]` : ""}`,
