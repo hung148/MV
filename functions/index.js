@@ -1,8 +1,15 @@
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const { getStorage } = require("firebase-admin/storage");
+const { escape: escapeHtml } = require('./site/render.cjs');
 
 admin.initializeApp();
+
+// Full HTML documents for the public website; Firebase Hosting serves assets.
+exports.ssrSite = require('firebase-functions/v2/https').onRequest(
+  { region: 'us-central1', memory: '256MiB', maxInstances: 10 },
+  require('./site/handler.cjs').handler,
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Email notification on new quote with file attachments
@@ -55,7 +62,7 @@ exports.onQuoteWithFiles = functions.firestore
         }
 
         try {
-          const bucket = getStorage().bucket(BUCKET_NAME);
+          const bucket = getStorage().bucket(BUCKET_NAME || undefined);
           const filePath = `quotes/${quoteId}/${meta.name}`;
           const file = bucket.file(filePath);
 
@@ -81,7 +88,7 @@ exports.onQuoteWithFiles = functions.firestore
       if (attachments.length > 0) {
         attachmentsHtml = `
           <h3>Attached Files</h3>
-          <p>${attachments.map((a) => a.filename).join(", ")}</p>`;
+          <p>${attachments.map((a) => escapeHtml(a.filename)).join(", ")}</p>`;
       }
 
       let linksHtml = "";
@@ -97,7 +104,7 @@ exports.onQuoteWithFiles = functions.firestore
             or view the quote in the Firebase Console.
           </p>
           <ul>
-            ${overflowLinks.map((f) => `<li>${f.name} (${formatBytes(f.size)})</li>`).join("")}
+            ${overflowLinks.map((f) => `<li>${escapeHtml(f.name)} (${formatBytes(f.size)})</li>`).join("")}
           </ul>`;
       }
 
@@ -107,12 +114,12 @@ exports.onQuoteWithFiles = functions.firestore
           subject: `New Quote Request from ${quote.fullName}${attachments.length > 0 ? ` [${attachments.length} file${attachments.length > 1 ? "s" : ""}]` : ""}`,
           html: `
             <h2>New Quote Request</h2>
-            <p><strong>Name:</strong> ${quote.fullName}</p>
-            <p><strong>Email:</strong> ${quote.email}</p>
-            <p><strong>Phone:</strong> ${quote.phone}</p>
-            <p><strong>Company:</strong> ${quote.company}</p>
+            <p><strong>Name:</strong> ${escapeHtml(quote.fullName)}</p>
+            <p><strong>Email:</strong> ${escapeHtml(quote.email)}</p>
+            <p><strong>Phone:</strong> ${escapeHtml(quote.phone)}</p>
+            <p><strong>Company:</strong> ${escapeHtml(quote.company)}</p>
             <p><strong>Project Details:</strong></p>
-            <p>${quote.details}</p>
+            <p>${escapeHtml(quote.details)}</p>
             <hr/>
             ${attachmentsHtml}
             ${linksHtml}

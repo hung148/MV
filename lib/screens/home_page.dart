@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
+import 'package:mv/main.dart' show SliverPage;
 import 'package:mv/widgets/responsive.dart';
 import 'package:mv/widgets/quote_form.dart';
 import 'package:mv/widgets/page_hero.dart';
@@ -12,24 +13,36 @@ import 'package:mv/widgets/hover_lift.dart';
 import 'package:mv/widgets/hover_card.dart';
 import 'package:mv/screens/gallery_page.dart' show kGalleryImages, openGalleryLightbox;
 
-class HomePageContent extends StatelessWidget {
+class HomePageContent extends SliverPage {
   const HomePageContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildHero(context),
-        _buildFeaturesSection(context),
-        _buildServicesSection(context),
-        _buildCapabilitiesSection(context),
-        _buildGalleryPreviewSection(context),
-        _buildWhyChooseUsSection(context),
-        _buildStatsSection(context),
-        _buildCTASection(context),
-        const AppFooter(),
-      ],
-    );
+  List<Widget> buildSlivers(BuildContext context) {
+    // One builder per section, NOT a list of built widgets: the point is that
+    // `SliverChildBuilderDelegate` calls these only as each section comes
+    // within the viewport's cache extent. Passing pre-built children to a
+    // `SliverToBoxAdapter` each would construct the whole page up front again
+    // and change nothing.
+    final sections = <WidgetBuilder>[
+      _buildHero,
+      _buildFeaturesSection,
+      _buildServicesSection,
+      _buildCapabilitiesSection,
+      _buildGalleryPreviewSection,
+      _buildWhyChooseUsSection,
+      _buildStatsSection,
+      _buildCTASection,
+      (context) => const AppFooter(),
+    ];
+
+    return [
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, i) => sections[i](context),
+          childCount: sections.length,
+        ),
+      ),
+    ];
   }
 
   Widget _buildHero(BuildContext context) {
@@ -256,7 +269,11 @@ class HomePageContent extends StatelessWidget {
           : Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(imagePath, fit: BoxFit.cover),
+                Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                  cacheWidth: r.decodeWidth(r.iconHero * 2.5),
+                ),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -421,6 +438,7 @@ class HomePageContent extends StatelessWidget {
                 child: Image.asset(
                   material.image,
                   fit: BoxFit.cover,
+                  cacheWidth: r.decodeWidth(r.materialCardWidth),
                 ),
               ),
               Positioned.fill(
@@ -867,6 +885,10 @@ class _GalleryFilmstripTile extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.cover,
+            // 1.25 is the filmstrip's maxScale: the centred tile is drawn
+            // that much larger than its slot, so decode for the biggest it
+            // ever gets rather than resampling a too-small bitmap up.
+            cacheWidth: Responsive.of(context).decodeWidth(size * 1.25),
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (wasSynchronouslyLoaded || frame != null) return child;
               return Container(

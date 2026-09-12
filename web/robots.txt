@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mvmanufacturing.com/sitemap.xml
+Sitemap: https://www.mvmanufacturing.com/sitemap.xml

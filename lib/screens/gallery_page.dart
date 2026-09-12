@@ -103,43 +103,64 @@ class _GalleryPageState extends State<GalleryPage> {
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: r.maxContentWidth),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: r.galleryGridColumns,
-              crossAxisSpacing: r.cardSpacing,
-              mainAxisSpacing: r.cardSpacing,
-              childAspectRatio: 1.0,
-            ),
-            itemCount: _images.length,
-            itemBuilder: (context, index) {
-              return HoverLift(
-                liftPx: 6,
-                addShadow: true,
-                borderRadius: r.cardRadius,
-                child: GestureDetector(
-                  onTap: () => _openLightbox(context, index),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(r.cardRadius),
-                    child: Image.asset(
-                      _images[index],
-                      fit: BoxFit.cover,
-                      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                        if (wasSynchronouslyLoaded || frame != null) return child;
-                        return Container(
-                          color: const Color(0xFFe0e0e0),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF0066cc),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+          // The grid is shrink-wrapped and unscrollable — it lives inside the
+          // page's own scroll view — so every tile is built at once and every
+          // photo decodes. At full source resolution (1200×1600) that is
+          // ~7.7 MB each, roughly 330 MB for the set, which does not fit the
+          // 100 MB ImageCache: images were being evicted and re-decoded as
+          // the page scrolled. Decoding at the size actually drawn keeps the
+          // whole gallery comfortably inside the cache — hence the
+          // LayoutBuilder, which is only here to measure one tile.
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = r.galleryGridColumns;
+              final tileWidth =
+                  (constraints.maxWidth - r.cardSpacing * (columns - 1)) /
+                      columns;
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: r.cardSpacing,
+                  mainAxisSpacing: r.cardSpacing,
+                  childAspectRatio: 1.0,
                 ),
+                itemCount: _images.length,
+                itemBuilder: (context, index) {
+                  return HoverLift(
+                    liftPx: 6,
+                    addShadow: true,
+                    borderRadius: r.cardRadius,
+                    child: GestureDetector(
+                      onTap: () => _openLightbox(context, index),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(r.cardRadius),
+                        child: Image.asset(
+                          _images[index],
+                          fit: BoxFit.cover,
+                          cacheWidth: r.decodeWidth(tileWidth),
+                          frameBuilder:
+                              (context, child, frame, wasSynchronouslyLoaded) {
+                            if (wasSynchronouslyLoaded || frame != null) {
+                              return child;
+                            }
+                            return Container(
+                              color: const Color(0xFFe0e0e0),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF0066cc),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),

@@ -35,18 +35,17 @@ service firebase.storage {
       allow write: if
         // 1. A Firestore doc must exist at this quoteId (proves the uploader
         //    just went through the validated quote form).
-        firestore.exists(/databases/(default)/documents/quotes/{quoteId})
+        firestore.exists(/databases/(default)/documents/quotes/$(quoteId))
 
         // 2. Check if the doc has submittedAt field. If it exists and is recent,
         //    allow the write. If it doesn't exist yet (serverTimestamp case),
         //    still allow it since we just validated the doc exists above.
         //    This avoids the issue where serverTimestamp() hasn't resolved yet.
         && (
-          !firestore.get(/databases/(default)/documents/quotes/{quoteId})
+          !firestore.get(/databases/(default)/documents/quotes/$(quoteId))
             .data.keys().hasAny(['submittedAt'])
-          || firestore.get(/databases/(default)/documents/quotes/{quoteId})
-              .data.submittedAt.timestampValue()
-                > timestamp.value(timestamp.now().seconds() - 600, 'UTC')
+          || firestore.get(/databases/(default)/documents/quotes/$(quoteId))
+              .data.submittedAt > request.time - duration.value(10, 'm')
         )
 
         // 3. Size cap: 10 MB per file.

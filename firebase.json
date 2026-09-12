@@ -6,7 +6,13 @@
     "rules": "storage.rules"
   },
   "hosting": {
-    "public": "build/web",
+    "public": "build/ssr",
+    "predeploy": ["npm run build", "npm test"],
+    "headers": [
+      { "source": "/site/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
+      { "source": "/assets/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
+      { "source": "**", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }] }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -15,7 +21,7 @@
     "rewrites": [
       {
         "source": "**",
-        "destination": "/index.html"
+        "function": { "functionId": "ssrSite", "region": "us-central1", "pinTag": true }
       }
     ]
   },

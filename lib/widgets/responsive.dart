@@ -17,15 +17,22 @@ class Responsive {
   final double screenHeight;
   final ScreenSize screenSize;
 
+  /// Captured so [decodeWidth] can size image decodes without a
+  /// [BuildContext] — most of the builders that lay out a photo take an `r`
+  /// and nothing else.
+  final double devicePixelRatio;
+
   const Responsive._({
     required this.screenWidth,
     required this.screenHeight,
     required this.screenSize,
+    required this.devicePixelRatio,
   });
 
   /// Factory constructor — call this in your build methods.
   factory Responsive.of(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final media = MediaQuery.of(context);
+    final size = media.size;
     final w = size.width;
     final ScreenSize s;
     if (w < 600) {
@@ -35,8 +42,31 @@ class Responsive {
     } else {
       s = ScreenSize.desktop;
     }
-    return Responsive._(screenWidth: w, screenHeight: size.height, screenSize: s);
+    return Responsive._(
+      screenWidth: w,
+      screenHeight: size.height,
+      screenSize: s,
+      devicePixelRatio: media.devicePixelRatio,
+    );
   }
+
+  /// The pixel width an asset should be **decoded** at to be painted
+  /// [logicalWidth] logical pixels wide on this device.
+  ///
+  /// Pass the result to `Image.asset(..., cacheWidth: …)`. Without it Flutter
+  /// decodes every asset at full source resolution and minifies at paint time,
+  /// which is expensive twice over: the site's photos run 1200×1600 to
+  /// 2400×3600, so one of them costs 8–35 MB of decoded RGBA to fill a card a
+  /// couple of hundred pixels wide, and a page's worth sails past the default
+  /// 100 MB `ImageCache` — at which point images are evicted and re-decoded
+  /// *while you scroll*. That was the stutter.
+  ///
+  /// Only ever pass a width the image is really drawn at; over-stating it
+  /// hands the whole problem back. Full-bleed art that genuinely wants the
+  /// source resolution — a hero background, the gallery lightbox — should not
+  /// use this at all.
+  int decodeWidth(double logicalWidth) =>
+      (logicalWidth * devicePixelRatio).round().clamp(64, 4096);
 
   // ─── Convenience booleans ────────────────────────────────────────────────
   bool get isMobile => screenSize == ScreenSize.mobile;

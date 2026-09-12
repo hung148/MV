@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:mv/firebase_options.dart';
 import 'package:mv/screens/about_page.dart';
 import 'package:mv/screens/capabilities_page.dart';
@@ -8,7 +12,8 @@ import 'package:mv/screens/home_page.dart';
 import 'package:mv/screens/services_page.dart';
 import 'package:mv/utils/seo_helper.dart';
 import 'package:mv/widgets/navigation_bar.dart';
-import 'package:mv/widgets/page_hero.dart' show HeroHeightNotification;
+import 'package:mv/widgets/page_hero.dart'
+    show HeroHeightNotification, HeroMediaReadyNotification;
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -51,14 +56,95 @@ class PageTransitionNotifier extends InheritedNotifier<ValueNotifier<bool>> {
   }
 }
 
+// ─── Sliver pages ─────────────────────────────────────────────────────────────
+/// A page that hands the route its body as slivers instead of one tall widget.
+///
+/// The pages started life as a `Column` inside a `SingleChildScrollView`, which
+/// builds and lays out **every** section before the first frame — on Home that
+/// measured as one 87ms BUILD and one 64ms LAYOUT frame at load, for five
+/// material cards, the filmstrip, the footer and a 30KB quote form that nobody
+/// can see yet. A `Column` neither builds lazily nor culls.
+///
+/// A page implementing this returns slivers, and the sections that matter go
+/// through a `SliverChildBuilderDelegate` so they are constructed as they
+/// approach the viewport. Pages that have not been converted still work — the
+/// route falls back to the old `SingleChildScrollView` for them.
+abstract class SliverPage extends StatelessWidget {
+  const SliverPage({super.key});
+
+  List<Widget> buildSlivers(BuildContext context);
+
+  /// Should never run: the route calls [buildSlivers] and puts the result
+  /// straight into its own `CustomScrollView`, so a SliverPage is consumed
+  /// rather than mounted.
+  ///
+  /// It is defensive because getting this wrong is *silent*. The first attempt
+  /// at this mechanism type-tested the wrong widget, fell through to the
+  /// box-scrolling branch, and ended up building this method's old
+  /// `CustomScrollView` inside a `SingleChildScrollView` — a viewport with
+  /// unbounded height. Debug would have thrown; in profile and release the
+  /// assert is compiled out and it just lays out to nothing, so the page went
+  /// blank with an empty console. `shrinkWrap` keeps that from happening
+  /// silently again.
+  @override
+  Widget build(BuildContext context) {
+    assert(
+      false,
+      '$runtimeType was built directly. The route should call buildSlivers(); '
+      'see _FadeRouteContent._scroller.',
+    );
+    return CustomScrollView(shrinkWrap: true, slivers: buildSlivers(context));
+  }
+}
+
+// ─── Hero proximity ───────────────────────────────────────────────────────────
+/// Whether the hero is on screen *or about to be*.
+///
+/// The hero video subscribes to this to decide whether to play. Resuming a
+/// paused video decoder costs a visible hitch, so reacting to the hero
+/// actually becoming visible is too late — the stutter lands in the frames the
+/// user is watching. AppShell already knows the scroll offset and the measured
+/// hero height, so it can say "the hero is coming" while it is still a screen
+/// below and let the decoder be up to speed by the time any of it shows.
+///
+/// The band is deliberately hysteretic rather than direction-sensing: playback
+/// resumes once the offset is within `_kHeroPreroll` of the
+/// hero's bottom edge and does not stop until it is a further
+/// `_kHeroRelease` past it. Tracking scroll *direction* would
+/// flip on every trackpad wobble; two thresholds cannot.
+class HeroProximityNotifier extends InheritedNotifier<ValueNotifier<bool>> {
+  const HeroProximityNotifier({
+    super.key,
+    required ValueNotifier<bool> notifier,
+    required super.child,
+  }) : super(notifier: notifier);
+
+  /// Defaults to true so a hero with no shell above it simply plays.
+  static ValueListenable<bool>? of(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<HeroProximityNotifier>()
+      ?.notifier;
+}
+
 // ─── Fade page wrapper ──────────────────────────────────────────────────────
 class _FadeRouteContent extends StatefulWidget {
+  /// The page as the framework hands it to `transitionsBuilder` — wrapped by
+  /// `ModalRoute` in a `RepaintBoundary` and a `Builder`. Used for the ordinary
+  /// box-scrolling path.
   final Widget child;
+
+  /// The page widget as *written in the route*, unwrapped.
+  ///
+  /// Needed because [child] above is a framework wrapper, so `child is
+  /// SliverPage` is always false — which is exactly the bug that made the
+  /// first version of this silently blank the page. Type-test this one.
+  final Widget page;
+
   final Animation<double> inOpacity;
   final Animation<double> outOpacity;
 
   const _FadeRouteContent({
     required this.child,
+    required this.page,
     required this.inOpacity,
     required this.outOpacity,
   });
@@ -71,6 +157,30 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
   final ValueNotifier<bool> _sectionsReady = ValueNotifier(false);
   final ScrollController _scroll = ScrollController();
 
+  // ── Holding the entrance until the page can afford it ──────────────────
+  // A cold load does its heaviest work in exactly the second the hero wants
+  // to animate: images decode for the first time, shaders compile, the video
+  // decoder spins up. Playing the reveal into that contention is what made
+  // the first load look rough. So once the route has faded in, the entrance
+  // waits for two things — the hero's media to report ready, and one frame
+  // to actually complete inside its budget — and then plays.
+  //
+  // The wait is capped. If the page is still busy at [_kMaxHold] the reveal
+  // plays anyway: a hero frozen while a slow connection finishes loading is
+  // worse than a few dropped frames, and a gate with no cap is a bug waiting
+  // for the one page that never sends the signal.
+
+  /// Longest the hero may sit still waiting for the page to settle.
+  static const _kMaxHold = Duration(milliseconds: 500);
+
+  /// A frame at or under this counts as "the page is keeping up". Slightly
+  /// over one 60Hz frame (16.7ms), so ordinary jitter doesn't fail the test.
+  static const _kFrameBudget = Duration(milliseconds: 24);
+
+  bool _mediaReady = false;
+  bool _waitingForFrame = false;
+  Timer? _holdTimer;
+
   @override
   void initState() {
     super.initState();
@@ -79,28 +189,90 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
     });
     widget.inOpacity.addStatusListener(_onStatusChanged);
     if (widget.inOpacity.status == AnimationStatus.completed) {
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (mounted) _sectionsReady.value = true;
-      });
+      _armEntrance();
     }
   }
 
   void _onStatusChanged(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (mounted) _sectionsReady.value = true;
-      });
+      _armEntrance();
     } else if (status == AnimationStatus.forward) {
+      _cancelHold();
+      _mediaReady = false;
       _sectionsReady.value = false;
+    }
+  }
+
+  bool _onMediaReady(HeroMediaReadyNotification n) {
+    _mediaReady = true;
+    return true; // nothing above this cares
+  }
+
+  /// Start waiting for a good moment to reveal.
+  void _armEntrance() {
+    if (_sectionsReady.value || _holdTimer != null) return;
+    _holdTimer = Timer(_kMaxHold, _releaseEntrance);
+    if (!_waitingForFrame) {
+      _waitingForFrame = true;
+      SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    }
+  }
+
+  /// Frames only arrive here while something is actually painting, so this is
+  /// a fast path, never the guarantee — [_holdTimer] is the guarantee.
+  void _onFrameTimings(List<FrameTiming> timings) {
+    if (!_mediaReady || _sectionsReady.value) return;
+    for (final t in timings) {
+      if (t.totalSpan <= _kFrameBudget) {
+        // Off the frame callback: releasing here would set state in the
+        // middle of the framework reporting timings.
+        scheduleMicrotask(_releaseEntrance);
+        return;
+      }
+    }
+  }
+
+  void _releaseEntrance() {
+    if (!mounted) return;
+    _cancelHold();
+    _sectionsReady.value = true;
+  }
+
+  void _cancelHold() {
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    if (_waitingForFrame) {
+      _waitingForFrame = false;
+      SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
     }
   }
 
   @override
   void dispose() {
+    _cancelHold();
     widget.inOpacity.removeStatusListener(_onStatusChanged);
     _sectionsReady.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// The route's scroll view.
+  ///
+  /// A [SliverPage] gets a `CustomScrollView`, so its sections build lazily.
+  /// Anything else keeps the original `SingleChildScrollView` — the whole page
+  /// in one box, wrapped in a `RepaintBoundary`.
+  Widget _scroller(BuildContext context) {
+    final page = widget.page;
+    if (page is SliverPage) {
+      return CustomScrollView(
+        controller: _scroll,
+        slivers: page.buildSlivers(context),
+      );
+    }
+    return SingleChildScrollView(
+      controller: _scroll,
+      child: RepaintBoundary(child: widget.child),
+    );
   }
 
   @override
@@ -111,9 +283,9 @@ class _FadeRouteContentState extends State<_FadeRouteContent> {
         opacity: widget.inOpacity,
         child: PageTransitionNotifier(
           notifier: _sectionsReady,
-          child: SingleChildScrollView(
-            controller: _scroll,
-            child: RepaintBoundary(child: widget.child),
+          child: NotificationListener<HeroMediaReadyNotification>(
+            onNotification: _onMediaReady,
+            child: _scroller(context),
           ),
         ),
       ),
@@ -141,6 +313,9 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
       return _FadeRouteContent(
         inOpacity: fadeIn,
         outOpacity: outOpacity,
+        // `child` is the framework's wrapped page; `page` is the widget this
+        // route was written with. The sliver test needs the unwrapped one.
+        page: child,
         child: pageChild,
       );
     },
@@ -337,6 +512,35 @@ class _AppShellState extends State<AppShell> {
   /// instead of rebuilding the shell (and re-running this build) 60× a second.
   final ValueNotifier<double> _solidity = ValueNotifier<double>(0);
 
+  /// Drives [HeroProximityNotifier] — see there for why this is a band and
+  /// not a visibility test.
+  final ValueNotifier<bool> _heroNear = ValueNotifier<bool>(true);
+
+  /// How far *past* the hero's bottom edge playback is kept alive, and how
+  /// much further again before it is allowed to stop. The gap between them is
+  /// the hysteresis; scrolling back up crosses the lower threshold first, so
+  /// the decoder is already running before the hero edge comes into view.
+  ///
+  /// The preroll is deliberately large — more than a screen. Resuming a video
+  /// on the web costs several frames before it is delivering pictures again,
+  /// and 900px (the first attempt) is only about a third of a second into a
+  /// fast flick: not enough, and Tom could still see the hiccup. At 2000px the
+  /// stall happens while the hero is comfortably off screen.
+  static const double _kHeroPreroll = 2000;
+  static const double _kHeroRelease = 700;
+
+  /// How long the page must stay beyond the release threshold before playback
+  /// actually stops.
+  ///
+  /// Distance alone still pauses on a scroll that merely *passes* through the
+  /// lower page — and every one of those pauses buys a hitch on the way back.
+  /// Requiring the reader to settle down there means that during ordinary
+  /// browsing the video is essentially never paused, and the saving is banked
+  /// only when someone parks far below the hero, where they are least likely
+  /// to snap straight back to it.
+  static const Duration _kHeroDwell = Duration(milliseconds: 2500);
+  Timer? _heroFarTimer;
+
   /// Height of the current page's hero, as measured and reported by
   /// [PageHero]. Null until the first frame — and on a page with no hero at
   /// all (the 404), which is why the fallback below is the viewport height.
@@ -355,6 +559,8 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     _solidity.dispose();
+    _heroFarTimer?.cancel();
+    _heroNear.dispose();
     super.dispose();
   }
 
@@ -389,6 +595,23 @@ class _AppShellState extends State<AppShell> {
   void _updateSolidity() {
     final hero = _heroHeight ?? _viewport;
 
+    // Hero proximity, on the same scroll signal. Two thresholds, so the state
+    // only changes when the offset leaves the band entirely — in between, it
+    // holds whatever it was. Coming back is immediate; leaving has to be held
+    // for [_kHeroDwell] first.
+    if (_offset < hero + _kHeroPreroll) {
+      _heroFarTimer?.cancel();
+      _heroFarTimer = null;
+      _heroNear.value = true;
+    } else if (_offset > hero + _kHeroPreroll + _kHeroRelease) {
+      if (_heroNear.value && _heroFarTimer == null) {
+        _heroFarTimer = Timer(_kHeroDwell, () {
+          _heroFarTimer = null;
+          if (mounted) _heroNear.value = false;
+        });
+      }
+    }
+
     // The hero's bottom edge is level with the underside of the bar once the
     // page has scrolled (heroHeight - navHeight) — that's where the bar must
     // be fully solid.
@@ -417,6 +640,9 @@ class _AppShellState extends State<AppShell> {
       _offset = 0;
       _heroHeight = null;
       _solidity.value = 0;
+      _heroFarTimer?.cancel();
+      _heroFarTimer = null;
+      _heroNear.value = true;
     }
   }
 
@@ -435,7 +661,10 @@ class _AppShellState extends State<AppShell> {
               onNotification: _onHeroHeight,
               child: NotificationListener<ScrollNotification>(
                 onNotification: _onScroll,
-                child: widget.child,
+                child: HeroProximityNotifier(
+                  notifier: _heroNear,
+                  child: widget.child,
+                ),
               ),
             ),
           ),

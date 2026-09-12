@@ -52,6 +52,12 @@ class AnimatedCounter extends StatefulWidget {
 
 class _AnimatedCounterState extends State<AnimatedCounter>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  /// Optional non-digit prefix (e.g. "±"), then the number, then any suffix.
+  /// `±0.0005"` → prefix `±`, number `0.0005`, suffix `"`.
+  ///
+  /// Static because it was being recompiled on every build.
+  static final _parts = RegExp(r'^([^\d]*)(\d[\d,.]*)(.*)$');
+
   late final AnimationController _controller;
 
   /// The count-up is deliberately not linear: it sprints through most of the
@@ -153,9 +159,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
 
   @override
   Widget build(BuildContext context) {
-    // Regex: optional non-digit prefix (e.g. "±"), then the number, then suffix.
-    // Example: "±0.0005\"" → prefix="±", numStr="0.0005", suffix="\""
-    final match = RegExp(r'^([^\d]*)(\d[\d,.]*)(.*)$').firstMatch(widget.end);
+    final match = _parts.firstMatch(widget.end);
     if (match == null) return Text(widget.end, style: widget.style);
 
     final prefix = match.group(1) ?? '';
@@ -169,34 +173,106 @@ class _AnimatedCounterState extends State<AnimatedCounter>
         ? numStr.split('.').last.length
         : 0;
 
+    // ── Reserve the box the digits will need ─────────────────────────────
+    // The displayed string changes width as it counts ("0" → "21", "999" →
+    // "1k"), and a child that changes size dirties its parent's layout. Left
+    // unbounded, that meant the Wrap/Column around every counter re-laid-out
+    // 60×/sec for the whole 2.6s count — which is why the page went rough
+    // while a counter was running, and why the text beside it visibly
+    // shuffled sideways as the digits grew.
+    //
+    // Measuring only the *final* string is not enough: "999" is wider than
+    // the "1k" it becomes. So sample across the range, and — because the site
+    // sets no tabular-figure font feature, where '8' is wider than '1' — swap
+    // every digit for the font's widest one before measuring. That makes each
+    // sample an upper bound for any value of that shape, so a number the
+    // sampling stepped over can still never be clipped.
+    final scaler = MediaQuery.textScalerOf(context);
+
+    double widthOf(String text) {
+      final tp = TextPainter(
+        text: TextSpan(text: text, style: widget.style),
+        textDirection: TextDirection.ltr,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      return tp.width;
+    }
+
+    var widestDigit = '0';
+    var widestDigitWidth = 0.0;
+    for (var d = 0; d <= 9; d++) {
+      final w = widthOf('$d');
+      if (w > widestDigitWidth) {
+        widestDigitWidth = w;
+        widestDigit = '$d';
+      }
+    }
+
+    final digit = RegExp(r'\d');
+    var reservedWidth = 0.0;
+    var reservedHeight = 0.0;
+    for (var i = 0; i <= 8; i++) {
+      final sample = _display(num * (i / 8), decimalPlaces)
+          .replaceAll(digit, widestDigit);
+      final tp = TextPainter(
+        text: TextSpan(text: '$prefix$sample$suffix', style: widget.style),
+        textDirection: TextDirection.ltr,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      if (tp.width > reservedWidth) reservedWidth = tp.width;
+      if (tp.height > reservedHeight) reservedHeight = tp.height;
+    }
+
     return VisibilityDetector(
       key: _visibilityKey,
       onVisibilityChanged: _onVisibilityChanged,
-      child: AnimatedBuilder(
-        animation: _progress,
-        builder: (context, _) {
-          final value = num * _progress.value;
-          final display = !widget.useKShorthand
-            ? (decimalPlaces > 0 ? value.toStringAsFixed(decimalPlaces) : value.round().toString())
-            : value >= 1000000
-                ? '${(value / 1000000).toStringAsFixed(value % 1000000 == 0 ? 0 : 1)}M'
-                : value >= 1000
-                    ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
-                    : value.round().toString();
-
-          // For integers >= 1000 with useKShorthand=false, add commas so
-          // "1,000+" displays as "1,000+" rather than "1000+".
-          final formatted = (!widget.useKShorthand &&
-              decimalPlaces == 0 &&
-              display.length > 3 &&
-              int.tryParse(display) != null)
-              ? _addCommas(display)
-              : display;
-
-          return Text('$prefix$formatted$suffix', style: widget.style);
-        },
+      child: SizedBox(
+        width: reservedWidth,
+        height: reservedHeight,
+        // Tight constraints stop the count from dirtying the layout above it,
+        // and the RepaintBoundary keeps each frame's repaint to this one text
+        // run instead of whatever else shares its layer.
+        child: RepaintBoundary(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AnimatedBuilder(
+              animation: _progress,
+              builder: (context, _) => Text(
+                '$prefix${_display(num * _progress.value, decimalPlaces)}$suffix',
+                style: widget.style,
+                maxLines: 1,
+                softWrap: false,
+              ),
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+  /// The digits to show for [value] — shared by the running count and by the
+  /// width measurement above, so the reserved box can never be wrong.
+  String _display(double value, int decimalPlaces) {
+    final display = !widget.useKShorthand
+        ? (decimalPlaces > 0
+            ? value.toStringAsFixed(decimalPlaces)
+            : value.round().toString())
+        : value >= 1000000
+            ? '${(value / 1000000).toStringAsFixed(value % 1000000 == 0 ? 0 : 1)}M'
+            : value >= 1000
+                ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
+                : value.round().toString();
+
+    // For integers >= 1000 with useKShorthand=false, add commas so "1,000+"
+    // displays as "1,000+" rather than "1000+".
+    return (!widget.useKShorthand &&
+            decimalPlaces == 0 &&
+            display.length > 3 &&
+            int.tryParse(display) != null)
+        ? _addCommas(display)
+        : display;
   }
 
   static String _addCommas(String digits) {
