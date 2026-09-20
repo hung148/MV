@@ -1,5 +1,7 @@
 import { createMotionController } from './motion-controller.mjs';
 import { initSmoothScroll } from './smooth-scroll.mjs';
+import { createScrollEffects } from './scroll-effects.mjs';
+import { startRevealSequence } from './reveal-sequence.mjs';
 // Localized motion only: never rebuild page content on a scroll frame.
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 export const motion = createMotionController(reducedMotion);
@@ -14,9 +16,23 @@ export function initMotion() {
   const signal = lifecycle.signal;
   const cleanup = [];
   let disposed = false;
+  // Tall cards must scroll fully into view before pinning, including landscape phones.
+  const stack = document.querySelector('.home-service-grid');
+  if (stack) {
+    let cardHeight = 0;
+    const fitStack = () => stack.style.setProperty('--stack-top', `${Math.min(90, innerHeight - cardHeight - 20)}px`);
+    const stackSize = new ResizeObserver(entries => {
+      cardHeight = entries[0].borderBoxSize?.[0]?.blockSize || entries[0].target.getBoundingClientRect().height;
+      fitStack();
+    });
+    if (stack.firstElementChild) stackSize.observe(stack.firstElementChild);
+    window.addEventListener('resize', fitStack, { passive: true, signal });
+    cleanup.push(() => { stackSize.disconnect(); stack.style.removeProperty('--stack-top'); });
+  }
   // Reveal headings and supporting copy word by word in reading order.
   // Split text nodes only so inline links, line breaks and semantics survive.
   const prepared = new Map();
+  const revealSequences = new Map();
   function prepareText(group) {
     const sequence = [];
     let delay = 0;
@@ -58,20 +74,18 @@ export function initMotion() {
   }
   function revealText(group) {
     if (reducedMotion.matches || group.contains(document.activeElement)) return;
-    for (const { word, frames, delay } of prepared.get(group) || []) {
-      animate(word, frames, { duration: 550, delay, fill: 'backwards' });
-    }
+    revealSequences.set(group, startRevealSequence(prepared.get(group) || [], animate));
   }
   const reveals = new IntersectionObserver(entries => {
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
       reveals.unobserve(entry.target);
-      // Install backwards-filled word animations before releasing the hidden state.
+      // Arm pending words before releasing the group's hidden state.
       try { revealText(entry.target); }
       finally { entry.target.classList.remove('text-reveal-pending'); }
     }
   }, { threshold: 0, rootMargin: '0px 0px -80px 0px' });
-  const revealGroups = [...document.querySelectorAll('.home-heading, .section-heading, .home-service-body, .home-owner-points, .home-quote-notes')];
+  const revealGroups = [...document.querySelectorAll('.home-heading, .section-heading, .home-service-body, .home-owner-points, .home-quote-notes, .detail-page .card, .detail-page .prose, .detail-page .team-card, .detail-page .timeline-item, .detail-page .process li, .detail-page .mission-copy')];
   // Never hide text that has already painted in the viewport (slow module loads,
   // restored scroll positions). Arm only below-fold groups before they enter.
   const pendingGroups = revealGroups.filter(element => element.getBoundingClientRect().top >= innerHeight);
@@ -82,18 +96,26 @@ export function initMotion() {
   });
   function releaseReveals() {
     reveals.disconnect();
+    revealSequences.forEach(finish => finish());
+    revealSequences.clear();
     revealGroups.forEach(element => element.classList.remove('text-reveal-pending'));
   }
   reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) releaseReveals();
   }, { signal });
   document.addEventListener('focusin', event => {
+    // Keyboard navigation must also reveal words already queued in a sequence.
+    for (const [element, finish] of revealSequences) if (element.contains(event.target)) {
+      finish(); revealSequences.delete(element);
+    }
     const group = event.target.closest?.('.text-reveal-pending');
     if (group) { reveals.unobserve(group); group.classList.remove('text-reveal-pending'); }
   }, { signal });
   cleanup.push(releaseReveals);
   const textVisibility = new IntersectionObserver(entries => {
     for (const entry of entries) if (!entry.isIntersecting && !entry.target.classList.contains('text-reveal-pending')) {
+      revealSequences.get(entry.target)?.();
+      revealSequences.delete(entry.target);
       entry.target.querySelectorAll('.motion-active').forEach(word => {
         word.getAnimations().forEach(animation => { try { animation.finish(); } catch { animation.cancel(); } });
       });
@@ -107,7 +129,24 @@ export function initMotion() {
   const hero = document.querySelector('.hero');
   const showcase = document.querySelector('.home-owner-photo');
   const showcaseImage = showcase?.querySelector('img');
+  // Prepare the zoom layer before the photo enters below Materials. Release it
+  // offscreen so this hint does not permanently consume graphics memory.
+  if (showcaseImage) {
+    let nearby = false;
+    const preparePhoto = () => {
+      showcaseImage.style.willChange = nearby && !reducedMotion.matches ? 'transform' : '';
+    };
+    const photoVisibility = new IntersectionObserver(entries => {
+      nearby = entries[0].isIntersecting;
+      preparePhoto();
+    }, { rootMargin: '400px 0px' });
+    photoVisibility.observe(showcase);
+    reducedMotion.addEventListener('change', preparePhoto, { signal });
+    cleanup.push(() => { photoVisibility.disconnect(); showcaseImage.style.willChange = ''; });
+  }
   const videoMedia = hero?.querySelector('video.hero-media');
+  const scrollEffects = createScrollEffects(document.documentElement);
+  let browserScrollEffects = false;
   const previousMotion = new WeakMap();
   let scrollFrame = 0;
   let paintedY = null;
@@ -117,6 +156,10 @@ export function initMotion() {
   document.querySelectorAll('#main, #main .section, #main .hero').forEach(element => layoutObserver.observe(element));
   document.fonts?.ready.then(() => { if (!disposed) invalidateGeometry(); });
   cleanup.push(() => layoutObserver.disconnect());
+  // Gallery crossfades add/remove a media layer without changing hero geometry.
+  const mediaObserver = new MutationObserver(invalidateGeometry);
+  if (hero) mediaObserver.observe(hero, { childList: true });
+  cleanup.push(() => { mediaObserver.disconnect(); scrollEffects.dispose(); });
   function paintScroll() {
     scrollFrame = 0;
     paintedY = window.scrollY;
@@ -127,12 +170,21 @@ export function initMotion() {
       const photoBounds = showcase?.getBoundingClientRect();
       heroGeometry = heroBounds && { top: heroBounds.top + paintedY, height: heroBounds.height };
       photoGeometry = photoBounds && { top: photoBounds.top + paintedY };
+      const targets = [];
+      if (heroGeometry) hero.querySelectorAll('.hero-media').forEach(element => {
+        targets.push({ element, kind: 'hero', geometry: heroGeometry });
+      });
+      if (showcaseImage && photoGeometry) targets.push({ element: showcaseImage, kind: 'photo', geometry: photoGeometry });
+      browserScrollEffects = scrollEffects.sync(targets, innerHeight,
+        document.documentElement.scrollHeight - document.documentElement.clientHeight, reducedMotion.matches);
       geometryDirty = false;
     }
+    // The compositor follows scroll position without per-frame style writes.
+    if (browserScrollEffects) return;
     const heroRect = heroGeometry && { top: heroGeometry.top - paintedY, height: heroGeometry.height };
     const photoRect = photoGeometry && { top: photoGeometry.top - paintedY };
     const enabled = !reducedMotion.matches;
-    const travel = enabled && heroRect ? Math.min(Math.max(-heroRect.top, 0), heroRect.height) * (innerWidth < 768 ? .2 : .35) : 0;
+    const travel = enabled && heroRect ? Math.min(Math.max(-heroRect.top, 0), heroRect.height) * .35 : 0;
     hero?.querySelectorAll('.hero-media').forEach(media => {
       const progress = heroRect ? Math.min(1, Math.max(0, -heroRect.top / (heroRect.height * .7))) : 0;
       const translate = travel ? `0 ${travel.toFixed(2)}px` : '';
@@ -159,20 +211,22 @@ export function initMotion() {
   function scheduleScroll() { if (!scrollFrame) scrollFrame = requestAnimationFrame(paintScroll); }
   window.addEventListener('scroll', () => {
     // Controlled scrolling has already painted this position in its own frame.
-    if (window.scrollY !== paintedY) scheduleScroll();
+    if (!browserScrollEffects && window.scrollY !== paintedY) scheduleScroll();
   }, { passive: true, signal });
   window.addEventListener('resize', invalidateGeometry, { passive: true, signal });
-  reducedMotion.addEventListener('change', scheduleScroll, { signal });
+  reducedMotion.addEventListener('change', invalidateGeometry, { signal });
   // Update parallax in the same frame as controlled scrolling, not a frame later.
   cleanup.push(initSmoothScroll(() => {
+    if (browserScrollEffects && !geometryDirty) return;
     cancelAnimationFrame(scrollFrame);
     paintScroll();
   }));
   const videoVisibility = new IntersectionObserver(entries => {
     if (videoMedia) videoMedia.style.willChange = entries[0].isIntersecting && !reducedMotion.matches ? 'transform' : '';
+    hero?.classList.toggle('hero-rendering', entries[0].isIntersecting);
   });
   if (videoMedia) videoVisibility.observe(videoMedia);
-  cleanup.push(() => { videoVisibility.disconnect(); if (videoMedia) videoMedia.style.willChange = ''; });
+  cleanup.push(() => { videoVisibility.disconnect(); hero?.classList.remove('hero-rendering'); if (videoMedia) videoMedia.style.willChange = ''; });
   scheduleScroll();
   cleanup.push(() => {
     cancelAnimationFrame(scrollFrame);
@@ -283,7 +337,7 @@ export function initMotion() {
   }
 
   // No perpetual polling: rotation is scheduled only while visible and active.
-  const galleryHero = document.querySelector('.hero img.hero-media');
+  const galleryHero = document.querySelector('.gallery-hero img.hero-media');
   if (galleryHero) {
     const images = [...document.querySelectorAll('.gallery-grid [data-gallery]')].map(link => link.href);
     let index = 0, visible = false, timer, pending = false;

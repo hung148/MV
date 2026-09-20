@@ -170,13 +170,13 @@ test('all routes deliver complete, distinct HTML without executing JavaScript', 
     titles.add(html.match(/<title>(.*?)<\/title>/)[1]);
     for (const [, link] of html.matchAll(/href="(\/(?:services|about|capabilities|gallery)?)"/g)) assert.equal((await fetch(origin + link, { method: 'HEAD' })).status, 200);
   }
-  assert.equal(titles.size, 5);
+  assert.equal(titles.size, Object.keys(routes).length);
 });
 
 test('deep links, query strings, redirects, unknown routes and methods have correct HTTP semantics', async () => {
   assert.equal((await fetch(origin + '/services?utm_source=test')).status, 200);
   const redirect = await fetch(origin + '/about/?ref=test', { redirect: 'manual' });
-  assert.equal(redirect.status, 308);
+  assert.equal(redirect.status, 301);
   assert.equal(redirect.headers.get('location'), '/about?ref=test');
   for (const route of ['/missing', '/constructor', '/__proto__', '/missing.js']) {
     const response = await fetch(origin + route);
@@ -195,7 +195,7 @@ test('bare domain permanently redirects to the canonical host with path and quer
       const headers = {};
       const response = { setHeader: (key, value) => { headers[key] = value; }, end() {} };
       handler({ method, url, headers: { host: 'mvmanufacturing.com' } }, response);
-      assert.equal(response.statusCode, 308);
+      assert.equal(response.statusCode, 301);
       assert.equal(headers.Location, 'https://www.mvmanufacturing.com' + destination);
     }
   }
@@ -211,6 +211,30 @@ test('sitemap URLs match each rendered canonical and robots advertises the same 
     assert.ok(html.includes(`rel="canonical" href="${url}"`));
   }
   assert.match(await (await fetch(origin + '/robots.txt')).text(), /Sitemap: https:\/\/www\.mvmanufacturing\.com\/sitemap\.xml/);
+});
+
+test('Firebase forwarded host redirects the alias without redirecting canonical or preview hosts', () => {
+  const { handler } = require('../functions/site/handler.cjs');
+  for (const [host, forwarded, expected] of [
+    ['internal.run.app', 'mvmanufacturing.com', 301],
+    ['internal.run.app', 'www.mvmanufacturing.com', 200],
+    ['localhost:3005', undefined, 200],
+    ['www.mvmanufacturing.com', 'mvmanufacturing.com', 200],
+  ]) {
+    const headers = {};
+    const response = { setHeader(key, value) { headers[key] = value; }, end() {} };
+    handler({ method: 'GET', url: '/services?ref=quote', headers: { host, 'x-forwarded-host': forwarded } }, response);
+    assert.equal(response.statusCode, expected);
+    if (expected === 301) assert.equal(headers.Location, 'https://www.mvmanufacturing.com/services?ref=quote');
+  }
+});
+
+test('removed resources are absent from navigation and sitemap', async () => {
+  const html = await (await fetch(origin + '/')).text();
+  const sitemap = await (await fetch(origin + '/sitemap.xml')).text();
+  assert.ok(!html.includes('href="/resources'));
+  assert.ok(!sitemap.includes('/resources'));
+  assert.equal((await fetch(origin + '/resources')).status, 404);
 });
 
 test('gallery retains all 43 photos, lazy loading, and working static assets', async () => {
@@ -287,13 +311,145 @@ test('scroll reserve accumulates, saturates, and reverses without old momentum',
   assert.equal(addScrollReserve(300, -40), -40);
 });
 
+test('word reveals allocate only due animations, catch up after stalls, and release queued text', async () => {
+  const { startRevealSequence } = await import('../functions/site/public/reveal-sequence.mjs');
+  let time = 0, pending;
+  const clock = { now: () => time, set: fn => { pending = fn; return 1; }, clear: () => { pending = undefined; } };
+  const sequence = Array.from({ length: 40 }, (_, i) => ({
+    word: { classList: new Set() }, frames: [{ opacity: 0 }, { opacity: 1 }], delay: i * 40,
+  }));
+  sequence.forEach(({ word }) => { word.classList.remove = word.classList.delete.bind(word.classList); });
+  const played = [];
+  const finish = startRevealSequence(sequence, (word, frames, options) => played.push({ word, options }), clock);
+  assert.equal(played.length, 1, 'Do not allocate all 40 animation layers at entrance');
+  assert.equal(sequence[1].word.classList.has('text-reveal-waiting'), true);
+  time = 45; pending();
+  assert.equal(played.length, 2);
+  assert.equal(played[1].options.delay, -5, 'Late timer keeps the original visual timeline');
+  time = 1000; pending();
+  assert.ok(played.every(({ options }) => options.delay > -550), 'Expired animations are never replayed');
+  assert.equal(sequence[25].word.classList.has('text-reveal-waiting'), false);
+  assert.equal(sequence[26].word.classList.has('text-reveal-waiting'), true);
+  const staleTimer = pending;
+  finish();
+  assert.equal(pending, undefined);
+  assert.ok(sequence.every(({ word }) => !word.classList.has('text-reveal-waiting')));
+  const count = played.length;
+  time = 1600; staleTimer();
+  assert.equal(played.length, count, 'A canceled group cannot restart');
+});
+
+test('browser scroll keyframes preserve the original parallax and zoom at every position', async () => {
+  const { scrollEffectFrames } = await import('../functions/site/public/scroll-effects.mjs');
+  const clamp = (n, max = 1) => Math.max(0, Math.min(max, n));
+  for (const limit of [200, 1400, 7000]) for (const top of [0, 200, 2300]) {
+    for (const kind of ['hero', 'photo']) {
+      const height = 900, viewport = 720;
+      const frames = scrollEffectFrames(kind, { top, height }, viewport, limit);
+      for (let y = 0; y <= limit; y += limit / 20) {
+        const offset = y / limit;
+        const right = frames.findIndex(frame => frame.offset >= offset);
+        const b = frames[right], a = frames[Math.max(0, right - 1)];
+        const t = a === b ? 0 : (offset - a.offset) / (b.offset - a.offset);
+        const scale = Number(a.scale) + (Number(b.scale) - Number(a.scale)) * t;
+        const expected = kind === 'hero' ? 1.2 - clamp((y - top) / (height * .7)) * .2
+          : 1.45 - clamp((viewport - top + y) / (viewport * .8)) * .45;
+        assert.ok(Math.abs(scale - expected) < 1e-9);
+        if (kind === 'hero') {
+          const translate = frame => parseFloat(frame.translate.split(' ')[1]);
+          assert.ok(Math.abs(translate(a) + (translate(b) - translate(a)) * t - clamp(y - top, height) * .35) < 1e-9);
+        }
+      }
+    }
+  }
+});
+
+test('browser scroll effects reuse animations and release them on route/reduced-motion changes', async () => {
+  const { createScrollEffects } = await import('../functions/site/public/scroll-effects.mjs');
+  const animations = [];
+  const element = { animate(frames, options) {
+    const animation = { frames, options, canceled: false, updates: 0,
+      cancel() { this.canceled = true; }, effect: { setKeyframes() { animation.updates++; } } };
+    animations.push(animation); return animation;
+  } };
+  const effects = createScrollEffects({}, class Timeline {});
+  const targets = [{ element, kind: 'hero', geometry: { top: 0, height: 800 } }];
+  assert.equal(effects.sync(targets, 800, 4000, false), true);
+  assert.equal(effects.sync(targets, 600, 4200, false), true);
+  assert.equal(animations.length, 1);
+  assert.equal(animations[0].updates, 1);
+  assert.equal(animations[0].options.duration, 'auto');
+  effects.sync([], 600, 4200, false);
+  assert.equal(animations[0].canceled, true);
+  effects.sync(targets, 600, 4200, false);
+  assert.equal(effects.sync(targets, 600, 4200, true), false);
+  assert.equal(animations[1].canceled, true);
+  effects.sync(targets, 600, 4200, false);
+  effects.dispose();
+  assert.equal(animations[2].canceled, true);
+  assert.equal(createScrollEffects({}, null).sync(targets, 600, 4200, false), false);
+  const unsupported = createScrollEffects({}, class Timeline {});
+  assert.equal(unsupported.sync([{ ...targets[0], element: { animate() { throw Error('unsupported'); } } }], 600, 4200, false), false);
+});
+
+test('wheel easing keeps native touch, nested controls, overlay blocking and cleanup', () => {
+  const vm = require('node:vm');
+  const listeners = new Map(), frames = new Map();
+  let nextFrame = 0;
+  const preference = { matches: false, addEventListener() {} };
+  const root = { scrollHeight: 3000, clientHeight: 800, classList: { contains: () => false } };
+  let modal = false;
+  const window = { scrollY: 0, addEventListener(type, callback, options) {
+    listeners.set(type, callback);
+    options?.signal?.addEventListener('abort', () => listeners.delete(type));
+  }, scrollTo({ top }) { this.scrollY = top; } };
+  const context = {
+    window, document: { hidden: false, documentElement: root,
+      body: { classList: { contains: () => modal } }, addEventListener() {} },
+    innerWidth: 1200, innerHeight: 800, AbortController,
+    matchMedia: () => preference, performance: { now: () => 0 },
+    ResizeObserver: class { observe() {} disconnect() {} },
+    MutationObserver: class { observe() {} disconnect() {} },
+    requestAnimationFrame: cb => { frames.set(++nextFrame, cb); return nextFrame; },
+    cancelAnimationFrame: id => frames.delete(id),
+  };
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../functions/site/public/smooth-scroll.mjs'), 'utf8').replaceAll('export function', 'function'), context);
+  const dispose = context.initSmoothScroll();
+  let prevented = 0;
+  const wheel = { deltaX: 0, deltaY: 100, deltaMode: 0, cancelable: true,
+    target: { closest: () => null }, preventDefault() { prevented++; } };
+  listeners.get('wheel')(wheel);
+  assert.equal(prevented, 1);
+  const [id, tick] = [...frames][0]; frames.delete(id); tick(16);
+  assert.ok(window.scrollY > 0);
+  const beforeStall = window.scrollY;
+  const [delayedId, delayedTick] = [...frames][0]; frames.delete(delayedId); delayedTick(216);
+  assert.ok(window.scrollY - beforeStall <= 800 * .032, 'A rendering stall must not cause a large catch-up jump');
+  assert.ok(frames.size > 0, 'Unspent input remains queued after a stall');
+  assert.equal(listeners.has('touchmove'), false, 'Touch must not wait on a blocking listener');
+  listeners.get('wheel')({ ...wheel, ctrlKey: true });
+  assert.equal(frames.size, 0);
+  listeners.get('wheel')({ ...wheel, target: { closest: () => ({}) } });
+  assert.equal(prevented, 1, 'Nested controls retain their own scrolling');
+  modal = true;
+  listeners.get('visibilitychange')?.();
+  // pageshow uses the same state synchronization as overlay/visibility updates.
+  listeners.get('pageshow')();
+  listeners.get('wheel')(wheel);
+  assert.equal(prevented, 1);
+  dispose();
+  assert.equal(listeners.has('wheel'), false);
+  assert.equal(frames.size, 0);
+});
+
 test('reserve drains smoothly to rest within the speed limit across refresh rates', async () => {
   const { drainScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
   for (const hz of [30, 60, 120, 144]) {
     let reserve = 360, velocity = 0, total = 0;
     for (let i = 0; i < hz * 4 && reserve >= .5; i++) {
       const step = drainScrollReserve(reserve, velocity, 1000 / hz);
-      assert.ok(step.distance >= 0 && step.distance <= 600 / hz);
+      assert.ok(step.distance >= 0 && step.distance <= 800 / hz);
       assert.ok(step.distance <= reserve);
       reserve -= step.distance; total += step.distance; velocity = step.velocity;
     }
@@ -302,14 +458,48 @@ test('reserve drains smoothly to rest within the speed limit across refresh rate
   }
   assert.equal(drainScrollReserve(100, 0, 0).distance, 0);
   assert.ok(drainScrollReserve(-100, 400, 16).distance < 0);
-  assert.ok(drainScrollReserve(360, 600, 1000).distance <= 19.2);
+  assert.ok(drainScrollReserve(360, 600, 1000).distance <= 80 + 1e-9);
 });
 
-test('scroll reserve slows during animation and eases back afterward', async () => {
+test('video-load frame delays preserve scroll progress without unbounded catch-up', async () => {
+  const { drainScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
+  function advance(intervals) {
+    let reserve = 360, velocity = 0;
+    for (const elapsed of intervals) {
+      const step = drainScrollReserve(reserve, velocity, elapsed);
+      reserve -= step.distance;
+      velocity = step.velocity;
+    }
+    return 360 - reserve;
+  }
+  const smooth = advance(Array(12).fill(1000 / 120));
+  const delayed = advance([50, 50]);
+  assert.ok(Math.abs(smooth - delayed) < .01, '50ms frames must not lose elapsed scroll time');
+  assert.ok(delayed > 20, 'Video load must not slow the same gesture to a crawl');
+  assert.deepEqual(drainScrollReserve(360, 0, 5000), drainScrollReserve(360, 0, 100));
+});
+
+test('scroll reserve respects an explicit limit and accelerates smoothly when raised', async () => {
   const { drainScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
   let velocity = 360;
   for (let i = 0; i < 60; i++) velocity = drainScrollReserve(360, velocity, 1000 / 60, 140).velocity;
   assert.ok(velocity < 141);
   const resumed = drainScrollReserve(360, velocity, 1000 / 60, 360);
   assert.ok(resumed.velocity > velocity && resumed.velocity < 360);
+});
+
+test('scroll responds promptly and small gestures settle without a long tail', async () => {
+  const { drainScrollReserve } = await import('../functions/site/public/smooth-scroll.mjs');
+  for (const hz of [60, 120, 144]) {
+    let reserve = 100, velocity = 0, elapsed = 0, first100ms = 0;
+    while (reserve >= .5 && elapsed < 2000) {
+      const step = drainScrollReserve(reserve, velocity, 1000 / hz);
+      reserve -= step.distance;
+      velocity = step.velocity;
+      elapsed += 1000 / hz;
+      if (elapsed <= 101) first100ms += step.distance;
+    }
+    assert.ok(first100ms > 20, 'A gesture should move visibly within 100ms');
+    assert.ok(elapsed < 700, 'A small gesture must not trail behind for seconds');
+  }
 });

@@ -5,7 +5,7 @@
     "build": "node scripts/build-ssr.cjs",
     "dev": "npm run build && node functions/site/dev.cjs",
     "start": "node functions/site/dev.cjs",
-    "test": "node --test test/ssr.test.cjs test/firebase-dependencies.test.cjs",
+    "test": "node --test test/ssr.test.cjs test/firebase-dependencies.test.cjs test/quote-notification.test.cjs",
     "deploy:ssr": "npm run build && npm test && firebase deploy --only functions:ssrSite,functions:onQuoteWithFiles,storage,hosting"
   },
   "engines": { "node": ">=22" }

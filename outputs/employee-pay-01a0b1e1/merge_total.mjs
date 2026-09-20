@@ -1,0 +1,13 @@
+import fs from 'node:fs/promises';
+import {SpreadsheetFile,FileBlob} from '@oai/artifact-tool';
+const dir='D:/mv/outputs/employee-pay-01a0b1e1';
+const w=await SpreadsheetFile.importXlsx(await FileBlob.load(`${dir}/MV_Manufacturing_Bang_Luong_Tieng_Viet_Merged.xlsx`));
+const s=w.worksheets.getItemAt(0);
+for(const v of s.getRange('G26:H26').values[0])if(v!==null&&v!==undefined&&v!=='')throw Error('Unexpected content in total notes cells');
+s.mergeCells('G26:H26');
+s.getRange('G26:H26').format.fill='#123C60';
+w.recalculate();
+const p=await w.render({sheetName:s.name,range:'A25:H26',scale:1.5});
+await fs.writeFile(`${dir}/merged-total.png`,new Uint8Array(await p.arrayBuffer()));
+await(await SpreadsheetFile.exportXlsx(w)).save(`${dir}/MV_Manufacturing_Bang_Luong_Hoan_Chinh.xlsx`);
+console.log('Merged G26:H26 and matched total row formatting.');

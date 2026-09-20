@@ -57,7 +57,7 @@ export function installNavigation({ unmount, mount }) {
         committed = true;
         committedURL = url.href;
         document.title = page.title;
-        for (const selector of ['link[rel="canonical"]', 'meta[name="description"]', 'meta[property^="og:"]']) {
+        for (const selector of ['link[rel="canonical"]', 'meta[name="description"]', 'meta[property^="og:"]', 'script[type="application/ld+json"]']) {
           document.head.querySelectorAll(selector).forEach(node => node.remove());
           page.head.querySelectorAll(selector).forEach(node => document.head.append(document.importNode(node, true)));
         }

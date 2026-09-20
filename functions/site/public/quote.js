@@ -76,7 +76,7 @@ export function initQuote(openedAt) {
       const api = await getApi();
       submittedFields = fields;
       await submitQuote(api, state, fields, files, (i, progress) => message(`Uploading file ${i + 1} of ${files.length}: ${Math.round(progress * 100)}%`));
-      done = true; message('Thank you! Your quote request has been submitted. We’ll get back to you within 24 hours.');
+      done = true; message(`Thank you! Your quote request has been saved. Reference: ${state.reference.id}. We’ll get back to you within 24 hours. Keep this reference if you need to follow up.`);
       submit.textContent = 'Request Submitted';
     } catch {
       message(state.reference ? 'Your details were saved, but attachments or final confirmation could not finish. Check your connection and retry. Your saved request will be reused. If more than 10 minutes have passed, call (669) 243-9228.' : 'We could not confirm your submission. Check your connection and try again, or call (669) 243-9228.', true);

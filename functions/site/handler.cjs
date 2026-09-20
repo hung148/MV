@@ -10,15 +10,19 @@ function handler(req, res) {
   const path = url.pathname;
   // Match the established www canonical, preserving deep links and queries.
   // Only redirect our known alias; local previews and unknown hosts stay local.
-  const host = (req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
+  const normalizeHost = value => String(value || '').split(',')[0].trim().toLowerCase().replace(/:\d+$/, '');
+  const directHost = normalizeHost(req.headers.host);
+  const forwardedHost = normalizeHost(req.headers['x-forwarded-host']);
+  const host = ['mvmanufacturing.com', 'www.mvmanufacturing.com'].includes(directHost) ? directHost : forwardedHost || directHost;
+  res.setHeader('Vary', 'X-Forwarded-Host');
   if (host === 'mvmanufacturing.com') {
     const canonicalPath = path !== '/' && path.endsWith('/') && Object.hasOwn(routes, path.slice(0, -1)) ? path.slice(0, -1) : path;
-    res.statusCode = 308;
+    res.statusCode = 301;
     res.setHeader('Location', 'https://www.mvmanufacturing.com' + canonicalPath + url.search);
     return res.end();
   }
   if (path !== '/' && path.endsWith('/') && Object.hasOwn(routes, path.slice(0, -1))) {
-    res.statusCode = 308; res.setHeader('Location', path.slice(0, -1) + url.search); return res.end();
+    res.statusCode = 301; res.setHeader('Location', path.slice(0, -1) + url.search); return res.end();
   }
   const found = Object.hasOwn(routes, path);
   res.statusCode = found ? 200 : 404;

@@ -82,7 +82,7 @@ Storage rules use the documented interpolated document path and
 `request.time - duration.value(10, 'm')` timestamp comparison. See
 [Storage rule reference](https://firebase.google.com/docs/reference/security/storage).
 The existing v1 trigger uses its explicit v1 import alongside the v2 SSR function.
-Notification HTML escapes customer-provided strings.
+Notification HTML escapes customer-provided strings. Notification creation is idempotent and retries transient failures. Drawings stay in Storage; email links to authenticated Firebase Console access instead of embedding large attachments. See [site update verification](docs/site-update-verification.md) for deployment checks and outstanding owner details.
 
 ## Deployment
 

@@ -13,13 +13,13 @@
 .home-work .filmstrip{margin-bottom:0}.home-work .filmstrip .gallery-item img{aspect-ratio:1}
 .home-work .filmstrip-slot{min-width:0}
 
-/* Give each service its own scroll beat; compact screens keep the regular grid. */
-@media (min-width: 768px) and (min-height: 620px) and (prefers-reduced-motion: no-preference) {
+/* Keep stacking on every screen, with responsive card content. */
+@media (prefers-reduced-motion: no-preference) {
   .home-offerings { content-visibility: visible; }
   /* Equal rows follow the tallest card, including wrapped text and loaded fonts. */
   .home-service-grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 100px; padding-bottom: 100px; }
   .home-service-grid .home-service {
-    position: sticky; top: 90px; display: grid;
+    position: sticky; top: var(--stack-top, 90px); display: grid;
     grid-template-columns: 1fr 1fr; align-items: stretch;
     box-shadow: 0 12px 32px #10243a14;
   }
@@ -28,6 +28,12 @@
   .home-service-grid .home-service-body { padding: 28px; }
   /* Focusing an earlier link must never leave it behind a later card. */
   .home-service-grid:focus-within .home-service { position: relative; top: auto; }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .home-service-grid { gap: 64px; padding-bottom: 64px; }
+  .home-service-grid .home-service { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  .home-service-grid .home-service-photo img { height: clamp(140px, 24svh, 200px); min-height: 0; }
+  .home-service-grid .home-service-body { padding: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero .hero-media { translate: none !important; }

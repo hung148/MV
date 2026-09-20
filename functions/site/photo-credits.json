@@ -1,0 +1,142 @@
+[
+  {
+    "name": "services-milling",
+    "author": "Connor Lucock",
+    "source": "https://www.pexels.com/photo/industrial-drilling-process-in-a-workshop-28752149/",
+    "license": "https://www.pexels.com/license/",
+    "downloaded": "2026-09-18",
+    "originalBytes": 300379,
+    "variants": [
+      {
+        "file": "services-milling-480.webp",
+        "bytes": 6640,
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "services-milling-960.webp",
+        "bytes": 17348,
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "services-milling-1600.webp",
+        "bytes": 35700,
+        "width": 1600,
+        "height": 1200
+      }
+    ]
+  },
+  {
+    "name": "services-prototype",
+    "author": "Connor Lucock",
+    "source": "https://www.pexels.com/photo/industrial-lathe-machine-in-action-28929513/",
+    "license": "https://www.pexels.com/license/",
+    "downloaded": "2026-09-18",
+    "originalBytes": 705154,
+    "variants": [
+      {
+        "file": "services-prototype-480.webp",
+        "bytes": 20674,
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "services-prototype-960.webp",
+        "bytes": 56072,
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "services-prototype-1600.webp",
+        "bytes": 128062,
+        "width": 1600,
+        "height": 1200
+      }
+    ]
+  },
+  {
+    "name": "services-production",
+    "author": "Connor Lucock",
+    "source": "https://www.pexels.com/photo/close-up-of-precision-machined-metal-parts-28752153/",
+    "license": "https://www.pexels.com/license/",
+    "downloaded": "2026-09-18",
+    "originalBytes": 212107,
+    "variants": [
+      {
+        "file": "services-production-480.webp",
+        "bytes": 16862,
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "services-production-960.webp",
+        "bytes": 43754,
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "services-production-1600.webp",
+        "bytes": 89256,
+        "width": 1600,
+        "height": 1200
+      }
+    ]
+  },
+  {
+    "name": "capabilities-tooling",
+    "author": "Pixabay",
+    "source": "https://www.pexels.com/photo/brass-and-stainless-steel-metal-tool-50691/",
+    "license": "https://www.pexels.com/license/",
+    "downloaded": "2026-09-18",
+    "originalBytes": 89832,
+    "variants": [
+      {
+        "file": "capabilities-tooling-480.webp",
+        "bytes": 7074,
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "capabilities-tooling-960.webp",
+        "bytes": 16996,
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "capabilities-tooling-1600.webp",
+        "bytes": 32626,
+        "width": 1600,
+        "height": 1200
+      }
+    ]
+  },
+  {
+    "name": "about-cnc",
+    "author": "Daniel Smyth",
+    "source": "https://www.pexels.com/photo/close-up-photo-of-metal-tool-10406128/",
+    "license": "https://www.pexels.com/license/",
+    "downloaded": "2026-09-19",
+    "originalBytes": 275712,
+    "variants": [
+      {
+        "file": "about-cnc-480.webp",
+        "bytes": 10712,
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "about-cnc-960.webp",
+        "bytes": 27044,
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "about-cnc-1600.webp",
+        "bytes": 60902,
+        "width": 1600,
+        "height": 1200
+      }
+    ]
+  }
+]
